@@ -19,8 +19,13 @@
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Content="CREATE WINPE ISO" Style="{StaticResource AccentButton}" Command="{Binding OpenBuilderCommand}" Margin="0,0,10,0" Width="140" Height="32">
+                    <Button.Effect>
+                        <DropShadowEffect BlurRadius="10" Color="#58A6FF" Opacity="0.3" ShadowDepth="0"/>
+                    </Button.Effect>
+                </Button>
                 <Button Content="EXPORT REPORT" Style="{StaticResource GhostButton}" Command="{Binding ExportCommand}" Margin="0,0,10,0" Width="140" Height="32"/>
-                <Button Content="REFRESH" Style="{StaticResource AccentButton}" Command="{Binding RefreshCommand}" Width="100" Height="32"/>
+                <Button Content="REFRESH" Style="{StaticResource GhostButton}" Command="{Binding RefreshCommand}" Width="100" Height="32"/>
             </StackPanel>
         </Grid>
 
@@ -123,5 +128,70 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
+
+        <!-- WinPE Builder Overlay Dialog -->
+        <Grid Grid.RowSpan="2" Background="#CC000000" Visibility="{Binding IsBuilderVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+            <Border Style="{StaticResource CardBorder}" Background="{StaticResource BgSurfaceBrush}" 
+                    BorderBrush="{StaticResource AccentBlueBrush}" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="600" Height="500" Padding="25">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Title & Header -->
+                    <Grid Grid.Row="0" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="⚡ Bootable WinPE ISO Creator" Foreground="{StaticResource AccentBlueBrush}" FontSize="18" FontWeight="Bold"/>
+                            <TextBlock Text="Compile and package the Apex Diagnostics Suite into a bootable Windows PE ISO." FontSize="11" Opacity="0.6" TextWrapping="Wrap"/>
+                        </StackPanel>
+                        <Button Content="✕" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" VerticalAlignment="Top" Width="30" Height="30" Padding="0" Command="{Binding CloseBuilderCommand}"/>
+                    </Grid>
+
+                    <!-- Config Parameters -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                        <!-- ADK Path -->
+                        <TextBlock Text="WINDOWS ADK PATH" FontSize="9" Opacity="0.5" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,10">
+                            <TextBox Text="{Binding AdkPath, Mode=TwoWay}" Background="#1FFFFFFF" Foreground="White" BorderBrush="#33FFFFFF" BorderThickness="1" SelectionBrush="#58A6FF" Height="30" Padding="5,5,80,5" VerticalContentAlignment="Center"/>
+                            <Button Content="BROWSE" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" Width="70" Height="28" Margin="1" Command="{Binding BrowseAdkCommand}"/>
+                        </Grid>
+
+                        <!-- ISO Save Path -->
+                        <TextBlock Text="OUTPUT ISO SAVE PATH" FontSize="9" Opacity="0.5" FontWeight="Bold" Margin="0,0,0,4"/>
+                        <Grid Margin="0,0,0,10">
+                            <TextBox Text="{Binding IsoOutputPath, Mode=TwoWay}" Background="#1FFFFFFF" Foreground="White" BorderBrush="#33FFFFFF" BorderThickness="1" SelectionBrush="#58A6FF" Height="30" Padding="5,5,80,5" VerticalContentAlignment="Center"/>
+                            <Button Content="BROWSE" Style="{StaticResource GhostButton}" HorizontalAlignment="Right" Width="70" Height="28" Margin="1" Command="{Binding BrowseIsoCommand}"/>
+                        </Grid>
+
+                        <!-- Compile Source Checkbox -->
+                        <CheckBox IsChecked="{Binding CompileBeforeBuild, Mode=TwoWay}" Margin="0,0,0,5" VerticalAlignment="Center">
+                            <TextBlock Text="Build fresh source code before packaging (dotnet publish)" FontSize="11" Foreground="White"/>
+                        </CheckBox>
+                    </StackPanel>
+
+                    <!-- Scrolling Live Logger Output -->
+                    <Border Grid.Row="2" Background="#111" CornerRadius="4" BorderBrush="#222" BorderThickness="1" Padding="8">
+                        <TextBox Text="{Binding BuilderLogText, Mode=OneWay}" 
+                                 Background="Transparent" BorderThickness="0" Foreground="#3FB950" 
+                                 FontFamily="Consolas" FontSize="10" IsReadOnly="True" 
+                                 AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" 
+                                 x:Name="LogTextBox" SelectionBrush="#58A6FF" TextChanged="LogTextBox_TextChanged"/>
+                    </Border>
+
+                    <!-- Action Footer -->
+                    <Grid Grid.Row="3" Margin="0,15,0,0">
+                        <TextBlock Text="Compilation requires Windows ADK + PE Addon." FontSize="10" Opacity="0.4" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="CLOSE" Style="{StaticResource GhostButton}" Width="100" Height="32" Margin="0,0,10,0" Command="{Binding CloseBuilderCommand}" IsEnabled="{Binding IsNotBuilding}"/>
+                            <Button Content="GENERATE ISO" Style="{StaticResource AccentButton}" Width="130" Height="32" Command="{Binding BuildIsoCommand}" IsEnabled="{Binding IsNotBuilding}"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
