@@ -20,8 +20,8 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 
 # Resolve source paths dynamically using the script's root directory
-$DiagnosticsSourcePath = Join-Path $PSScriptRoot "ApexDiagnostics\bin\Release\net8.0-windows"
-$ShellSourcePath = Join-Path $PSScriptRoot "ApexShell\bin\Release\net8.0-windows"
+$DiagnosticsSourcePath = Join-Path $PSScriptRoot "Build"
+$ShellSourcePath = Join-Path $PSScriptRoot "Build"
 
 Write-Host "Verifying ADK Installation..." -ForegroundColor Cyan
 
@@ -56,8 +56,8 @@ $MakeWinPEMedia = "$CopyPEDir\MakeWinPEMedia.cmd"
 $CopyPE = "$CopyPEDir\copype.cmd"
 $DandISetEnv = "$DetectedAdkPath\Deployment Tools\DandISetEnv.bat"
 
-if (-not (Test-Path $DiagnosticsSourcePath)) {
-    Write-Error "Uygulama yayini '$DiagnosticsSourcePath' bulunamadi. Lutfen once derlemeyi (dotnet build -c Release) calistirin."
+if (-not (Test-Path "$DiagnosticsSourcePath\ApexDiagnostics.exe")) {
+    Write-Error "Derlenmis program dosyalari '$DiagnosticsSourcePath' icinde bulunamadi. Lutfen once 'Build.bat' betigini calistirin."
     Read-Host "Kapatmak icin Enter'a basin"
     exit
 }

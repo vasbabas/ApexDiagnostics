@@ -27,6 +27,7 @@ $RECYCLE.BIN/
 ## WinPE Working Directory Exclusions
 /WinPE_ApexDesktop/
 /WinPE_Apex/
+/Build/
 mount/
 media/
 boot.wim
