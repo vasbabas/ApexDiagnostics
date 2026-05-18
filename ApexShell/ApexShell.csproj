@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Resource Include="apex_icon.ico" />
+    <Resource Include="apex_icon.png" />
   </ItemGroup>
 
 </Project>
