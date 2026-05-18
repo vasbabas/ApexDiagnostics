@@ -47,6 +47,8 @@ Apex Diagnostics is not just another hardware tester; it is an industrial-grade 
 | **🔍 Surface Verification** | Victoria-style low-level block sector latency profiling. | Physical Disk IO | `kernel32.dll` (Raw Handles) |
 | **📁 Data Rescue Wizard** | Asynchronous backup for user documents, offline credentials, and security keys. | Non-blocking Copy | Asynchronous IO Stream |
 | **💿 Disk Cloner & Wiper** | Sector-by-sector drive cloning with local threat verification safeguards. | Bare-Metal Duplication | `kernel32.dll` (Direct Sectors) |
+| **🩺 S.M.A.R.T. Analyzer** | Queries direct disk firmware logs for sector health and power-on hours telemetry. | Hardware Queries | WMI `root\wmi` (FailurePredictData) |
+| **⚡ WinPE Creator GUI** | Single-click compilation and packaging into a bootable Windows PE ISO. | Background Subprocess | Asynchronous `Process` stdout redirect |
 
 ---
 
@@ -67,8 +69,10 @@ Scans memory sectors asynchronously to detect soft errors, bad chips, and cell c
 * **Live Sector Grid:** Visualizes memory blocks as they are tested.
 * **Quick & Deep Passes:** Support for brief validation tests as well as exhaustive testing runs.
 
-### 4. 🔍 Victoria-Style Disk Surface Scan
-Communicates directly with disk hardware via raw Win32 APIs, bypassing the OS filesystem layer.
+### 4. 🔍 Victoria Disk Scan & S.M.A.R.T. Analyzer
+Direct physical sector read analysis combined with active hardware firmware S.M.A.R.T. diagnostics.
+* **S.M.A.R.T. Telemetry Decoding:** Decodes WMI raw bytes (`FailurePredictData.VendorSpecific`) to fetch reallocated sector counts (ID `0x05`), Power-On hours (ID `0x09`), and remaining SSD lifetime wear-leveling (ID `0xE7`/`0xAD`).
+* **Interactive UI Health Pill Badges:** Dynamic, color-coded rounded pills (Green, Yellow, Red) showing exact drive health percentage alongside comprehensive disk status.
 * **Block Latency Profiling:** Classifies sectors into **6 precise speed categories**:
   * 🟢 **Good (< 50ms):** Excellent health.
   * 🟡 **Slow (< 150ms):** Normal read speeds.
@@ -81,6 +85,12 @@ Communicates directly with disk hardware via raw Win32 APIs, bypassing the OS fi
 Engineered for migration to SSDs or cloning unstable, failing drives.
 * **Low-Level Sector Duplication:** Sector-by-sector copying using raw disk handles (`\\\\.\\PhysicalDriveX`).
 * **Wipe Safeguard Card:** Highlighted safety warning card outlining source and target disks with explicit user confirmation prompts to prevent data loss.
+
+### 6. ⚡ Bootable WinPE ISO Creator GUI
+Integrated packaging dashboard designed to package Apex Diagnostics into a bootable recovery environment.
+* **One-Click Automated Packaging:** Triggers asynchronous background compilation and packaging scripts.
+* **Live Monospace Log Console:** Fully redirected standard output and standard error logs streaming directly to an interactive terminal-styled console.
+* **Zero-Dependency Browsing:** Seamless target ISO folder selection and local Windows ADK folder path auto-extraction using native file dialogs.
 
 ---
 

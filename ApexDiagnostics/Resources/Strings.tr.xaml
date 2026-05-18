@@ -179,4 +179,16 @@
     <system:String x:Key="LabelCloned">Klonlandı</system:String>
     <system:String x:Key="LabelSafetyAlert">⚠ GÜVENLİK UYARISI</system:String>
     <system:String x:Key="BtnAcknowledge">Anladım / Kapat</system:String>
+    
+    <!-- WinPE ISO Builder & SMART -->
+    <system:String x:Key="BtnCreateWinpeIso">WINPE ISO DERLE</system:String>
+    <system:String x:Key="TitleWinpeCreator">⚡ Bootable WinPE ISO Üretici</system:String>
+    <system:String x:Key="DescWinpeCreator">Apex Diagnostics Suite'i önyüklenebilir bir Windows PE ISO dosyası olarak paketleyin.</system:String>
+    <system:String x:Key="LabelAdkPath">WINDOWS ADK KLASÖR YOLU</system:String>
+    <system:String x:Key="LabelIsoPath">ÇIKTI ISO DOSYASI YOLU</system:String>
+    <system:String x:Key="LabelCompileSource">Paketlemeden önce kaynak kodları yeniden derle (dotnet publish)</system:String>
+    <system:String x:Key="LabelAdkRequired">Derleme işlemi Windows ADK + PE Eklentisi gerektirir.</system:String>
+    <system:String x:Key="BtnBrowse">GÖZAT</system:String>
+    <system:String x:Key="BtnGenerateIso">ISO ÜRET</system:String>
+    <system:String x:Key="BtnClose">KAPAT</system:String>
 </ResourceDictionary>

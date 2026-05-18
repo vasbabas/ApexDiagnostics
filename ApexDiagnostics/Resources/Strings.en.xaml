@@ -178,5 +178,17 @@
     <system:String x:Key="CloneStatusCompleted">Drive cloning completed successfully!</system:String>
     <system:String x:Key="LabelCloned">Cloned</system:String>
     <system:String x:Key="LabelSafetyAlert">⚠ SAFETY ALERT</system:String>
-    <system:String x:Key="BtnAcknowledge">Acknowledge</system:String>
+    <system:String x:Key="BtnAcknowledge">Acknowledge / Close</system:String>
+    
+    <!-- WinPE ISO Builder & SMART -->
+    <system:String x:Key="BtnCreateWinpeIso">CREATE WINPE ISO</system:String>
+    <system:String x:Key="TitleWinpeCreator">⚡ Bootable WinPE ISO Creator</system:String>
+    <system:String x:Key="DescWinpeCreator">Compile and package the Apex Diagnostics Suite into a bootable Windows PE ISO.</system:String>
+    <system:String x:Key="LabelAdkPath">WINDOWS ADK PATH</system:String>
+    <system:String x:Key="LabelIsoPath">OUTPUT ISO SAVE PATH</system:String>
+    <system:String x:Key="LabelCompileSource">Build fresh source code before packaging (dotnet publish)</system:String>
+    <system:String x:Key="LabelAdkRequired">Compilation requires Windows ADK + PE Addon.</system:String>
+    <system:String x:Key="BtnBrowse">BROWSE</system:String>
+    <system:String x:Key="BtnGenerateIso">GENERATE ISO</system:String>
+    <system:String x:Key="BtnClose">CLOSE</system:String>
 </ResourceDictionary>
