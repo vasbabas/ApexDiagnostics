@@ -8,12 +8,9 @@ Includes required WinPE optional components (.NET, WMI).
 #>
 
 param (
-    [string]$AdkPath = "C:\Users\User\Desktop\Masaüstü\Assessment and Deployment Kit",
     [string]$Architecture = "amd64",
     [string]$WorkingDir = "C:\WinPE_ApexDesktop",
-    [string]$IsoPath = "C:\WinPE_ApexDesktop\ApexDiagnosticSuite.iso",
-    [string]$DiagnosticsSourcePath = "C:\Users\User\Desktop\Apex\ApexDiagnostics\bin\Release\net8.0-windows\win-x64\publish",
-    [string]$ShellSourcePath = "C:\Users\User\Desktop\Apex\ApexShell\bin\Release\net8.0-windows\win-x64\publish"
+    [string]$IsoPath = "C:\WinPE_ApexDesktop\ApexDiagnosticSuite.iso"
 )
 
 if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
@@ -22,20 +19,46 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     exit
 }
 
-Write-Host "Verifying ADK Installation..." -ForegroundColor Cyan
-$CopyPEDir = "$AdkPath\Windows Preinstallation Environment"
-$MakeWinPEMedia = "$CopyPEDir\MakeWinPEMedia.cmd"
-$CopyPE = "$CopyPEDir\copype.cmd"
-$DandISetEnv = "$AdkPath\Deployment Tools\DandISetEnv.bat"
+# Resolve source paths dynamically using the script's root directory
+$DiagnosticsSourcePath = Join-Path $PSScriptRoot "ApexDiagnostics\bin\Release\net8.0-windows\win-x64\publish"
+$ShellSourcePath = Join-Path $PSScriptRoot "ApexShell\bin\Release\net8.0-windows\win-x64\publish"
 
-if (-not (Test-Path $CopyPE)) {
-    Write-Error "Windows ADK veya Windows PE eklentisi bulunamadi: '$AdkPath'."
+Write-Host "Verifying ADK Installation..." -ForegroundColor Cyan
+
+# Auto-detect Windows ADK path from common installations or Desktop folders
+$DetectedAdkPath = $null
+$AdkSearchPaths = @(
+    "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit",
+    "$env:USERPROFILE\Desktop\Assessment and Deployment Kit",
+    "$env:USERPROFILE\Desktop\Masaüstü\Assessment and Deployment Kit",
+    "C:\Users\User\Desktop\Assessment and Deployment Kit",
+    "C:\Users\User\Desktop\Masaüstü\Assessment and Deployment Kit"
+)
+
+foreach ($path in $AdkSearchPaths) {
+    if (Test-Path "$path\Windows Preinstallation Environment\copype.cmd") {
+        $DetectedAdkPath = $path
+        break
+    }
+}
+
+if ($null -eq $DetectedAdkPath) {
+    Write-Error "Windows ADK veya Windows PE eklentisi hicbir arama dizininde bulunamadi!"
+    Write-Host "Lutfen ADK klasorunu Masaustune veya varsayilan Program Files dizinine kurdugunuzdan emin olun." -ForegroundColor Yellow
     Read-Host "Kapatmak icin Enter'a basin"
     exit
 }
 
+Write-Host "ADK Found at: $DetectedAdkPath" -ForegroundColor Green
+
+$CopyPEDir = "$DetectedAdkPath\Windows Preinstallation Environment"
+$MakeWinPEMedia = "$CopyPEDir\MakeWinPEMedia.cmd"
+$CopyPE = "$CopyPEDir\copype.cmd"
+$DandISetEnv = "$DetectedAdkPath\Deployment Tools\DandISetEnv.bat"
+
 if (-not (Test-Path $DiagnosticsSourcePath)) {
-    Write-Error "Uygulama yayini '$DiagnosticsSourcePath' bulunamadi. Lutfen 'dotnet publish' calistirin."
+    Write-Error "Uygulama yayini '$DiagnosticsSourcePath' bulunamadi. Lutfen once derlemeyi (dotnet publish) calistirin."
+    Read-Host "Kapatmak icin Enter'a basin"
     exit
 }
 

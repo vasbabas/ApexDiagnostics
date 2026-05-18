@@ -273,8 +273,8 @@
 
                         <!-- Actions -->
                         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="{DynamicResource BtnCancel}" Command="{Binding CancelBackupWizardCommand}" Style="{StaticResource GhostButton}" Width="90" Height="32" Margin="0,0,10,0" Padding="5,2"/>
-                            <Button Content="{DynamicResource BtnStartRescue}" Command="{Binding StartWizardBackupCommand}" Style="{StaticResource GreenButton}" Width="120" Height="32" Padding="5,2"/>
+                            <Button Content="{DynamicResource BtnCancel}" Command="{Binding CancelBackupWizardCommand}" Style="{StaticResource GhostButton}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2"/>
+                            <Button Content="{DynamicResource BtnStartRescue}" Command="{Binding StartWizardBackupCommand}" Style="{StaticResource GreenButton}" Width="Auto" MinWidth="130" Height="32" Padding="15,2"/>
                         </StackPanel>
                     </Grid>
                 </Grid>

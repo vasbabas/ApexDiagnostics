@@ -18,27 +18,12 @@ namespace ApexDiagnostics.ViewModels
         public string Name => $"DISK {Index}";
         public string Model { get; set; } = "";
         public long SizeGB { get; set; }
-        public long Capacity => SizeGB; // WPF Binding Compatibility Fail-Safe
         public string Interface { get; set; } = "";
         public string Serial { get; set; } = "";
         public string DriveLetters { get; set; } = "";
         
         private string _status = "Healthy";
         public string Status { get => _status; set { _status = value; OnPropertyChanged(nameof(StatusColor)); } }
-
-        private int _healthPercent = 100;
-        public int HealthPercent { get => _healthPercent; set => SetProperty(ref _healthPercent, value); }
-
-        private string _healthText = "Healthy";
-        public string HealthText { get => _healthText; set => SetProperty(ref _healthText, value); }
-
-        private int _powerOnHours = -1;
-        public int PowerOnHours { get => _powerOnHours; set { if (SetProperty(ref _powerOnHours, value)) OnPropertyChanged(nameof(PowerOnHoursText)); } }
-        public string PowerOnHoursText => PowerOnHours != -1 ? $"{PowerOnHours} Hours" : "N/A";
-
-        private int _reallocatedSectors = 0;
-        public int ReallocatedSectors { get => _reallocatedSectors; set { if (SetProperty(ref _reallocatedSectors, value)) OnPropertyChanged(nameof(ReallocatedSectorsText)); } }
-        public string ReallocatedSectorsText => ReallocatedSectors > 0 ? $"{ReallocatedSectors} Bad Sectors" : "0 Bad Sectors";
 
         public string StatusColor => Status switch
         {
@@ -265,10 +250,6 @@ namespace ApexDiagnostics.ViewModels
                                 Serial = item["SerialNumber"]?.ToString()?.Trim() ?? "N/A"
                             };
 
-                            // Populate SMART parameters from raw WMI
-                            string pnpId = item["PNPDeviceID"]?.ToString() ?? "";
-                            PopulateSmartData(info, pnpId);
-
                             // Drive letters
                             var letters = new List<string>();
                             try
@@ -310,124 +291,6 @@ namespace ApexDiagnostics.ViewModels
             });
         }
 
-        private void PopulateSmartData(DiskDriveInfo info, string pnpDeviceId)
-        {
-            if (string.IsNullOrEmpty(pnpDeviceId))
-            {
-                info.HealthPercent = 100;
-                info.HealthText = "Healthy (No SMART)";
-                return;
-            }
-
-            try
-            {
-                bool predictsFailure = false;
-                string cleanedPnp = pnpDeviceId.ToLower().Replace("\\", "");
-
-                // 1. Check WMI Failure Predict Status
-                using (var statusSearcher = new ManagementObjectSearcher(@"root\wmi", "SELECT * FROM MSStorageDriver_FailurePredictStatus"))
-                {
-                    statusSearcher.Options.Timeout = TimeSpan.FromSeconds(2);
-                    foreach (var statusObj in statusSearcher.Get())
-                    {
-                        string instName = statusObj["InstanceName"]?.ToString().ToLower().Replace("\\", "") ?? "";
-                        if (instName.Contains(cleanedPnp) || cleanedPnp.Contains(instName.Split('_')[0]))
-                        {
-                            predictsFailure = (bool)(statusObj["PredictFailure"] ?? false);
-                            break;
-                        }
-                    }
-                }
-
-                if (predictsFailure)
-                {
-                    info.HealthPercent = 5;
-                    info.HealthText = "Failing! (SMART Predict)";
-                    info.Status = "Bad";
-                    return;
-                }
-
-                // 2. Query Raw SMART Data attributes
-                byte[] vendorSpecific = null;
-                using (var dataSearcher = new ManagementObjectSearcher(@"root\wmi", "SELECT * FROM MSStorageDriver_FailurePredictData"))
-                {
-                    dataSearcher.Options.Timeout = TimeSpan.FromSeconds(2);
-                    foreach (var dataObj in dataSearcher.Get())
-                    {
-                        string instName = dataObj["InstanceName"]?.ToString().ToLower().Replace("\\", "") ?? "";
-                        if (instName.Contains(cleanedPnp) || cleanedPnp.Contains(instName.Split('_')[0]))
-                        {
-                            vendorSpecific = (byte[])dataObj["VendorSpecific"];
-                            break;
-                        }
-                    }
-                }
-
-                if (vendorSpecific != null && vendorSpecific.Length >= 362)
-                {
-                    int healthScore = 100;
-                    int reallocated = 0;
-                    int hours = -1;
-                    int wearLevel = -1;
-
-                    // SMART telemetry payload starts at offset 2, 12 bytes per attribute block
-                    for (int i = 2; i < 362; i += 12)
-                    {
-                        if (i + 12 > vendorSpecific.Length) break;
-                        byte attrId = vendorSpecific[i];
-                        if (attrId == 0) continue;
-
-                        byte attrVal = vendorSpecific[i + 3];
-                        int rawVal = BitConverter.ToInt32(vendorSpecific, i + 5) & 0x00FFFFFF;
-
-                        if (attrId == 0x05) // Reallocated Sectors Count
-                        {
-                            reallocated = rawVal;
-                            if (rawVal > 0)
-                            {
-                                healthScore -= Math.Min(60, rawVal * 5); // Reduce health proportionally
-                            }
-                        }
-                        else if (attrId == 0x09) // Power-On Hours Count
-                        {
-                            hours = rawVal;
-                        }
-                        else if (attrId == 0xE7 || attrId == 0xAD || attrId == 0xB8) // Wear Range / SSD Endurance Life
-                        {
-                            wearLevel = attrVal;
-                        }
-                    }
-
-                    if (wearLevel != -1 && wearLevel <= 100)
-                    {
-                        healthScore = Math.Min(healthScore, wearLevel);
-                    }
-
-                    info.HealthPercent = Math.Max(0, healthScore);
-                    info.PowerOnHours = hours;
-                    info.ReallocatedSectors = reallocated;
-
-                    if (info.HealthPercent >= 90) info.HealthText = "Healthy";
-                    else if (info.HealthPercent >= 50) info.HealthText = "Degraded";
-                    else info.HealthText = "Warning";
-
-                    if (info.HealthPercent < 50) info.Status = "Warning";
-                    if (info.HealthPercent < 20) info.Status = "Bad";
-                }
-                else
-                {
-                    info.HealthPercent = 100;
-                    info.HealthText = "Healthy (No SMART)";
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"SMART query failed for disk {info.Index}: {ex.Message}", "WARN");
-                info.HealthPercent = 100;
-                info.HealthText = "Healthy (No SMART)";
-            }
-        }
-
         // SMART / Detailed Info
         private string _smartStatus = "Unknown";
         public string SmartStatus { get => _smartStatus; set => SetProperty(ref _smartStatus, value); }
@@ -437,14 +300,12 @@ namespace ApexDiagnostics.ViewModels
 
         private void LoadDiskDetails(DiskDriveInfo disk)
         {
-            SmartStatus = disk.HealthText;
+            SmartStatus = disk.Status;
             DiskDetails = $"Model: {disk.Model}\n" +
                           $"Serial: {disk.Serial}\n" +
                           $"Interface: {disk.Interface}\n" +
                           $"Capacity: {disk.SizeGB} GB\n" +
-                          $"SMART Health: {disk.HealthPercent}%\n" +
-                          $"Power-On Hours: {disk.PowerOnHoursText}\n" +
-                          $"Reallocated: {disk.ReallocatedSectorsText}";
+                          $"Status: {disk.Status}";
         }
 
         private void UpdateUI()

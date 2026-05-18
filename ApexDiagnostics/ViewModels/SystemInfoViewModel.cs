@@ -33,12 +33,7 @@ namespace ApexDiagnostics.ViewModels
         public ICommand RefreshCommand { get; }
         public ICommand ExportCommand { get; }
         
-        // WinPE ISO Builder Properties & Commands
-        public ICommand OpenBuilderCommand { get; }
-        public ICommand CloseBuilderCommand { get; }
-        public ICommand BrowseAdkCommand { get; }
-        public ICommand BrowseIsoCommand { get; }
-        public ICommand BuildIsoCommand { get; }
+
 
         public SystemInfoViewModel(TelemetryManager telemetry)
         {
@@ -46,11 +41,7 @@ namespace ApexDiagnostics.ViewModels
             RefreshCommand = new RelayCommand(() => Task.Run(LoadSystemInfo));
             ExportCommand = new RelayCommand(ExportToFile);
             
-            OpenBuilderCommand = new RelayCommand(() => IsBuilderVisible = true);
-            CloseBuilderCommand = new RelayCommand(() => IsBuilderVisible = false);
-            BrowseAdkCommand = new RelayCommand(ExecuteBrowseAdk);
-            BrowseIsoCommand = new RelayCommand(ExecuteBrowseIso);
-            BuildIsoCommand = new RelayCommand(ExecuteBuildIso);
+
 
             if (_telemetry.IsInitialized)
             {
@@ -396,170 +387,5 @@ namespace ApexDiagnostics.ViewModels
             return $"{interfaceType} HDD";
         }
 
-        // WinPE Builder State variables
-        private bool _isBuilderVisible;
-        public bool IsBuilderVisible { get => _isBuilderVisible; set => SetProperty(ref _isBuilderVisible, value); }
-
-        private string _builderLogText = "System Idle. Ready to compile.\n";
-        public string BuilderLogText { get => _builderLogText; set => SetProperty(ref _builderLogText, value); }
-
-        private string _adkPath = @"C:\Users\User\Desktop\Masaüstü\Assessment and Deployment Kit";
-        public string AdkPath { get => _adkPath; set => SetProperty(ref _adkPath, value); }
-
-        private string _isoOutputPath = @"C:\Users\User\Desktop\ApexDiagnostics.iso";
-        public string IsoOutputPath { get => _isoOutputPath; set => SetProperty(ref _isoOutputPath, value); }
-
-        private bool _compileBeforeBuild = true;
-        public bool CompileBeforeBuild { get => _compileBeforeBuild; set => SetProperty(ref _compileBeforeBuild, value); }
-
-        private bool _isBuilding;
-        public bool IsBuilding { get => _isBuilding; set { if (SetProperty(ref _isBuilding, value)) OnPropertyChanged(nameof(IsNotBuilding)); } }
-        public bool IsNotBuilding => !IsBuilding;
-
-        private void ExecuteBrowseAdk()
-        {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "ADK Scripts (copype.cmd;MakeWinPEMedia.cmd)|copype.cmd;MakeWinPEMedia.cmd|All Files (*.*)|*.*",
-                Title = "Select copype.cmd or MakeWinPEMedia.cmd inside the ADK folder"
-            };
-            if (dialog.ShowDialog() == true)
-            {
-                try
-                {
-                    string parent = System.IO.Path.GetDirectoryName(dialog.FileName);
-                    AdkPath = System.IO.Path.GetDirectoryName(parent);
-                }
-                catch { }
-            }
-        }
-
-        private void ExecuteBrowseIso()
-        {
-            var dialog = new Microsoft.Win32.SaveFileDialog
-            {
-                Filter = "ISO Files (*.iso)|*.iso|All Files (*.*)|*.*",
-                FileName = "ApexDiagnosticSuite.iso",
-                Title = "Select location to save generated bootable ISO"
-            };
-            if (dialog.ShowDialog() == true)
-            {
-                IsoOutputPath = dialog.FileName;
-            }
-        }
-
-        private async void ExecuteBuildIso()
-        {
-            if (IsBuilding) return;
-            IsBuilding = true;
-            BuilderLogText = $"[INFO] Starting WinPE ISO Generation Pipeline at {DateTime.Now}\n";
-
-            try
-            {
-                if (CompileBeforeBuild)
-                {
-                    BuilderLogText += "[INFO] Compiling ApexDiagnostics source code (dotnet publish)..." + Environment.NewLine;
-                    bool diagnosticsOk = await RunCommandAsync("dotnet", "publish \"c:\\Users\\User\\Desktop\\Apex\\ApexDiagnostics\\ApexDiagnostics.csproj\" -c Release -r win-x64 --self-contained true");
-                    if (!diagnosticsOk)
-                    {
-                        BuilderLogText += "[ERROR] Failed to compile ApexDiagnostics! Aborting build.\n";
-                        IsBuilding = false;
-                        return;
-                    }
-                    
-                    BuilderLogText += "[INFO] Compiling ApexShell source code (dotnet publish)..." + Environment.NewLine;
-                    bool shellOk = await RunCommandAsync("dotnet", "publish \"c:\\Users\\User\\Desktop\\Apex\\ApexShell\\ApexShell.csproj\" -c Release -r win-x64 --self-contained true");
-                    if (!shellOk)
-                    {
-                        BuilderLogText += "[ERROR] Failed to compile ApexShell! Aborting build.\n";
-                        IsBuilding = false;
-                        return;
-                    }
-                    BuilderLogText += "[INFO] Compilation successful!\n";
-                }
-
-                BuilderLogText += "[INFO] Executing WinPE ISO compilation script..." + Environment.NewLine;
-                string scriptPath = @"c:\Users\User\Desktop\Apex\Build-WinPE-Desktop.ps1";
-                string arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\" " +
-                                   $"-AdkPath \"{AdkPath}\" " +
-                                   $"-IsoPath \"{IsoOutputPath}\" " +
-                                   $"-DiagnosticsSourcePath \"c:\\Users\\User\\Desktop\\Apex\\ApexDiagnostics\\bin\\Release\\net8.0-windows\\win-x64\\publish\" " +
-                                   $"-ShellSourcePath \"c:\\Users\\User\\Desktop\\Apex\\ApexShell\\bin\\Release\\net8.0-windows\\win-x64\\publish\"";
-
-                bool builderOk = await RunCommandAsync("powershell.exe", arguments);
-                if (builderOk)
-                {
-                    BuilderLogText += $"\n🎉 WINPE ISO SUCCESSFULLY CREATED!\nSaved to: {IsoOutputPath}\n";
-                }
-                else
-                {
-                    BuilderLogText += "\n🛑 WINPE ISO COMPILATION FAILED! Check the log above for details.\n";
-                }
-            }
-            catch (Exception ex)
-            {
-                BuilderLogText += $"[FATAL ERROR] {ex.Message}\n";
-            }
-            finally
-            {
-                IsBuilding = false;
-            }
-        }
-
-        private Task<bool> RunCommandAsync(string fileName, string arguments)
-        {
-            var tcs = new TaskCompletionSource<bool>();
-
-            try
-            {
-                var process = new Process();
-                process.StartInfo.FileName = fileName;
-                process.StartInfo.Arguments = arguments;
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.RedirectStandardOutput = true;
-                process.StartInfo.RedirectStandardError = true;
-                process.StartInfo.CreateNoWindow = true;
-
-                process.OutputDataReceived += (s, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            BuilderLogText += e.Data + Environment.NewLine;
-                        });
-                    }
-                };
-
-                process.ErrorDataReceived += (s, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        Application.Current.Dispatcher.Invoke(() =>
-                        {
-                            BuilderLogText += $"[ERR] {e.Data}" + Environment.NewLine;
-                        });
-                    }
-                };
-
-                process.EnableRaisingEvents = true;
-                process.Exited += (s, e) =>
-                {
-                    tcs.SetResult(process.ExitCode == 0);
-                    process.Dispose();
-                };
-
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-            }
-            catch (Exception ex)
-            {
-                BuilderLogText += $"[PROCESS FAILED] {ex.Message}\n";
-                tcs.SetResult(false);
-            }
-
-            return tcs.Task;
-        }
     }
 }

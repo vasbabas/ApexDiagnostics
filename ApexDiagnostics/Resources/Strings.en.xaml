@@ -191,4 +191,6 @@
     <system:String x:Key="BtnBrowse">BROWSE</system:String>
     <system:String x:Key="BtnGenerateIso">GENERATE ISO</system:String>
     <system:String x:Key="BtnClose">CLOSE</system:String>
+    <system:String x:Key="BtnExportReport">EXPORT REPORT</system:String>
+    <system:String x:Key="BtnRefresh">REFRESH</system:String>
 </ResourceDictionary>

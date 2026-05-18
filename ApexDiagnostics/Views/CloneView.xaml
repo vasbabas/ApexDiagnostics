@@ -19,8 +19,8 @@
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Content="{DynamicResource BtnRefreshDrives}" Style="{StaticResource GhostButton}" Command="{Binding RefreshDisksCommand}" Width="150" Height="32" Margin="0,0,10,0"/>
-                <Button Content="{DynamicResource BtnStartCloning}" Style="{StaticResource GreenButton}" Command="{Binding ShowWarningCommand}" Width="150" Height="32"/>
+                <Button Content="{DynamicResource BtnRefreshDrives}" Style="{StaticResource GhostButton}" Command="{Binding RefreshDisksCommand}" Width="Auto" MinWidth="130" Height="32" Margin="0,0,10,0" Padding="15,0"/>
+                <Button Content="{DynamicResource BtnStartCloning}" Style="{StaticResource GreenButton}" Command="{Binding ShowWarningCommand}" Width="Auto" MinWidth="140" Height="32" Padding="15,0"/>
             </StackPanel>
         </Grid>
 
@@ -163,8 +163,8 @@
                     </StackPanel>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-                        <Button Content="{DynamicResource BtnCancel}" Command="{Binding CancelWarningCommand}" Style="{StaticResource GhostButton}" Width="100" Height="32" Margin="0,0,10,0"/>
-                        <Button Content="{DynamicResource BtnWipeClone}" Command="{Binding StartCloneCommand}" Style="{StaticResource DangerButton}" Width="150" Height="32"/>
+                        <Button Content="{DynamicResource BtnCancel}" Command="{Binding CancelWarningCommand}" Style="{StaticResource GhostButton}" Width="Auto" MinWidth="90" Height="32" Margin="0,0,10,0" Padding="15,0"/>
+                        <Button Content="{DynamicResource BtnWipeClone}" Command="{Binding StartCloneCommand}" Style="{StaticResource DangerButton}" Width="Auto" MinWidth="140" Height="32" Padding="15,0"/>
                     </StackPanel>
                 </Grid>
             </Border>
