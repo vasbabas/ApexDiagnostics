@@ -3,7 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Apex WinPE Desktop Environment" 
         WindowState="Maximized" WindowStyle="None" Topmost="False"
-        Background="#02050A" Foreground="#E6EDF3" FontFamily="Segoe UI, Segoe UI Variable, Arial">
+        Background="#02050A" Foreground="#E6EDF3" FontFamily="Segoe UI, Segoe UI Variable, Arial"
+        Icon="apex_icon.png">
 
     <Window.Resources>
         <!-- Desktop Shortcut Style -->
