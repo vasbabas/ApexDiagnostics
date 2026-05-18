@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">ПАНЕЛЬ УПРАВЛЕНИЯ</system:String>
+    <system:String x:Key="NavCpuTest">ТЕСТ CPU &amp; ВАЛИДАЦИЯ</system:String>
+    <system:String x:Key="NavRamTest">ДИАГНОСТИКА RAM</system:String>
+    <system:String x:Key="NavDiskScan">ПРОВЕРКА ПОВЕРХНОСТИ</system:String>
+    <system:String x:Key="NavSystemInfo">ИНФО О СИСТЕМЕ</system:String>
+    <system:String x:Key="NavExplorer">ФАЙЛОВЫЙ МЕНЕДЖЕР</system:String>
+    <system:String x:Key="NavClone">КЛОНИРОВАНИЕ ДИСКОВ</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">ОБЗОР СИСТЕМЫ</system:String>
+    <system:String x:Key="StatCpuLoad">ТЕКУЩАЯ НАГРУЗКА CPU</system:String>
+    <system:String x:Key="StatRamUsage">ФИЗИЧЕСКАЯ НАГРУЗКА RAM</system:String>
+    <system:String x:Key="StatDiskHealth">ГЛУБОКАЯ ТЕМПЕРАТУРА ДИСКА</system:String>
+    <system:String x:Key="SystemSummary">СТАТУС ТЕЛЕМЕТРИИ HARDWARE MOTOR</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">СТРЕСС-ТЕСТИРОВАНИЕ И ВАЛИДАЦИЯ CPU</system:String>
+    <system:String x:Key="LabelCpuStatus">СТАТУС</system:String>
+    <system:String x:Key="LabelElapsedTime">ПРОШЛО ВРЕМЕНИ</system:String>
+    <system:String x:Key="LabelCpuPower">ЭНЕРГОПОТРЕБЛЕНИЕ</system:String>
+    <system:String x:Key="LabelInstructions">ИНСТРУКЦИИ CPU</system:String>
+    <system:String x:Key="BtnStartTest">НАЧАТЬ ТЕСТ</system:String>
+    <system:String x:Key="BtnStopTest">ОСТАНОВИТЬ ТЕСТ</system:String>
+    <system:String x:Key="CpuUsageHistory">ИСТОРИЯ НАГРУЗКИ CPU (%)</system:String>
+    <system:String x:Key="CpuTempHistory">ИСТОРИЯ ТЕМПЕРАТУРЫ CPU (°C)</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">ДИАГНОСТИКА ТОКСИЧНОСТИ ОЗУ</system:String>
+    <system:String x:Key="LabelRamAllocated">ВЫДЕЛЕНО</system:String>
+    <system:String x:Key="LabelRamCoverage">ПОКРЫТИЕ</system:String>
+    <system:String x:Key="LabelMemoryToxicity">СТАТУС ЗДОРОВЬЯ ПАМЯТИ</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">ГЛУБОКАЯ ПРОВЕРКА ПОВЕРХНОСТИ ДИСКА</system:String>
+    <system:String x:Key="SelectPhysicalDisk">ВЫБЕРИТЕ ФИЗИЧЕСКИЙ ДИСК</system:String>
+    <system:String x:Key="BtnStartScan">НАЧАТЬ СКАНИРОВАНИЕ</system:String>
+    <system:String x:Key="BtnStopScan">ОСТАНОВИТЬ СКАНИРОВАНИЕ</system:String>
+    <system:String x:Key="LabelBadSectors">ПОВРЕЖДЕННЫЕ СЕКТОРА</system:String>
+    <system:String x:Key="LabelScanSpeed">СКОРОСТЬ СКАНИРОВАНИЯ</system:String>
+    
+    <!-- System Info -->
+    <system:String x:Key="TitleSystemInfo">ПОДРОБНЫЙ СПИСОК КОМПОНЕНТОВ СИСТЕМЫ</system:String>
+    <system:String x:Key="ClickToCopy">Нажмите на значение, чтобы скопировать в буфер обмена</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">МАСТЕР ВОССТАНОВЛЕНИЯ ДАННЫХ APEX</system:String>
+    <system:String x:Key="BtnBackupWizard">БЫСТРОЕ ВОССТАНОВЛЕНИЕ ДАННЫХ</system:String>
+    <system:String x:Key="WizardTitle">АСИНХРОННЫЙ МАСТЕР ВОССТАНОВЛЕНИЯ APEX</system:String>
+    <system:String x:Key="WizSelectProfile">1. Выберите профиль пользователя для резервного копирования</system:String>
+    <system:String x:Key="WizSelectDest">2. Выберите целевой диск для резервной копии</system:String>
+    <system:String x:Key="WizSelectOptions">3. Настройте параметры копирования данных</system:String>
+    <system:String x:Key="WizOptCreds">Копировать учетные данные Windows и ключи DPAPI</system:String>
+    <system:String x:Key="WizOptRoot">Сканировать и спасать файлы в корне диска C:\</system:String>
+    <system:String x:Key="BtnStartRescue">НАЧАТЬ ВОССТАНОВЛЕНИЕ</system:String>
+    <system:String x:Key="BtnCancel">ОТМЕНА</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">ПОСЕКТОРНОЕ КЛОНИРОВАНИЕ И ДУБЛИРОВАНИЕ</system:String>
+    <system:String x:Key="TitleCloneDesc">Посекторная репликация для полного восстановления и переноса дисков.</system:String>
+    <system:String x:Key="BtnRefreshDrives">ОБНОВИТЬ ДИСКИ</system:String>
+    <system:String x:Key="BtnStartCloning">НАЧАТЬ КЛОНИРОВАНИЕ</system:String>
+    <system:String x:Key="SelectSourceDisk">ВЫБЕРИТЕ ИСХОДНЫЙ ДИСК (ЧТЕНИЕ)</system:String>
+    <system:String x:Key="SelectTargetDisk">ВЫБЕРИТЕ ЦЕЛЕВОЙ ДИСК (ЗАПИСЬ)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 ПОДРОБНАЯ ТЕЛЕМЕТРИЯ ФИЗИЧЕСКОГО КЛОНИРОВАНИЯ</system:String>
+    <system:String x:Key="CloningInfo1">• Посекторное клонирование: Полное зеркалирование копирует системные файлы, скрытые EFI-разделы, структуры и права доступа.</system:String>
+    <system:String x:Key="CloningInfo2">• Оптимизация WinPE: Прямая запись во все секторы на высокой скорости с двойным буфером в 4 МБ.</system:String>
+    <system:String x:Key="CloningInfo3">• Емкость целевого диска: Убедитесь, что объем целевого диска не меньше исходного диска!</system:String>
+    <system:String x:Key="CloneTelemetryTitle">ТЕЛЕМЕТРИЯ В РЕАЛЬНОМ ВРЕМЕНИ</system:String>
+    <system:String x:Key="CloneSpeed">СКОРОСТЬ КЛОНИРОВАНИЯ</system:String>
+    <system:String x:Key="CloneTimeRemaining">ОСТАЛОСЬ ВРЕМЕНИ</system:String>
+    <system:String x:Key="CloneSourceIndex">ИСХОДНЫЙ ИНДЕКС</system:String>
+    <system:String x:Key="CloneTargetIndex">ЦЕЛЕВОЙ ИНДЕКС</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 КРИТИЧЕСКОЕ ПРЕДУПРЕЖДЕНИЕ ОБ УНИЧТОЖЕНИИ ДАННЫХ</system:String>
+    <system:String x:Key="CloneWarningSubtitle">Низкоуровневое посекторное клонирование полностью сотрет все данные на целевом диске.</system:String>
+    <system:String x:Key="CloneWarningText">ВНИМАНИЕ: Это действие безвозвратно сотрет все файлы, операционные системы и разделы на выбранном целевом диске!</system:String>
+    <system:String x:Key="CloneWarningConfirmText">Введите 'CLONE' в поле ниже для подтверждения операции:</system:String>
+    <system:String x:Key="BtnWipeClone">СТЕРЕТЬ И КЛОНИРОВАТЬ</system:String>
+</ResourceDictionary>

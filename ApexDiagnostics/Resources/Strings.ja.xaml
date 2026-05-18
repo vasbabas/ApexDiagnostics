@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">ダッシュボード</system:String>
+    <system:String x:Key="NavCpuTest">CPU負荷と検証</system:String>
+    <system:String x:Key="NavRamTest">メモリ診断</system:String>
+    <system:String x:Key="NavDiskScan">ディスク表面検査</system:String>
+    <system:String x:Key="NavSystemInfo">システム構成情報</system:String>
+    <system:String x:Key="NavExplorer">ファイル復旧</system:String>
+    <system:String x:Key="NavClone">ディスククローン</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">ハードウェア概要</system:String>
+    <system:String x:Key="StatCpuLoad">CPU リアルタイム負荷</system:String>
+    <system:String x:Key="StatRamUsage">物理メモリ使用量</system:String>
+    <system:String x:Key="StatDiskHealth">ディスク内部温度</system:String>
+    <system:String x:Key="SystemSummary">ハードウェア診断エンジン稼働状態</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">CPU 負荷テストと検証</system:String>
+    <system:String x:Key="LabelCpuStatus">ステータス</system:String>
+    <system:String x:Key="LabelElapsedTime">経過時間</system:String>
+    <system:String x:Key="LabelCpuPower">現在の消費電力</system:String>
+    <system:String x:Key="LabelInstructions">対応指示セット</system:String>
+    <system:String x:Key="BtnStartTest">テスト開始</system:String>
+    <system:String x:Key="BtnStopTest">テスト停止</system:String>
+    <system:String x:Key="CpuUsageHistory">CPU 負荷履歴 (%)</system:String>
+    <system:String x:Key="CpuTempHistory">CPU 温度履歴 (°C)</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">物理メモリ整合性・毒性診断</system:String>
+    <system:String x:Key="LabelRamAllocated">確保領域</system:String>
+    <system:String x:Key="LabelRamCoverage">診断カバー率</system:String>
+    <system:String x:Key="LabelMemoryToxicity">メモリ総合健全性</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">ディスクディープ表面整合性検証</system:String>
+    <system:String x:Key="SelectPhysicalDisk">物理ディスク選択</system:String>
+    <system:String x:Key="BtnStartScan">スキャン開始</system:String>
+    <system:String x:Key="BtnStopScan">スキャン停止</system:String>
+    <system:String x:Key="LabelBadSectors">破損セクタ数</system:String>
+    <system:String x:Key="LabelScanSpeed">スキャン速度</system:String>
+    
+    <!-- System Info -->
+    <system:String x:Key="TitleSystemInfo">ルミネッセンス構成スペック目録</system:String>
+    <system:String x:Key="ClickToCopy">値を左クリックしてクリップボードにコピー</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">APEX データレスキューウィザード</system:String>
+    <system:String x:Key="BtnBackupWizard">クイックデータ復旧ウィザード</system:String>
+    <system:String x:Key="WizardTitle">APEX 非同期データ高速救済ウィザード</system:String>
+    <system:String x:Key="WizSelectProfile">1. レスキュー対象のユーザープロファイルを選択</system:String>
+    <system:String x:Key="WizSelectDest">2. バックアップ先のターゲットドライブを選択</system:String>
+    <system:String x:Key="WizSelectOptions">3. レスキューエンジンのオプションを構成</system:String>
+    <system:String x:Key="WizOptCreds">保存された Windows 資格情報とオフライン DPAPI キーを保存</system:String>
+    <system:String x:Key="WizOptRoot">C: ドライブ上のユーザー定義フォルダーや遊離ファイルをスキャン・救済</system:String>
+    <system:String x:Key="BtnStartRescue">レスキュー開始</system:String>
+    <system:String x:Key="BtnCancel">キャンセル</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">物理ディスクセクタ複製およびクローン</system:String>
+    <system:String x:Key="TitleCloneDesc">ベアメタル復元やディスク移行のためのセクター単位でのミラーコピー。</system:String>
+    <system:String x:Key="BtnRefreshDrives">ドライブ一覧更新</system:String>
+    <system:String x:Key="BtnStartCloning">クローン開始</system:String>
+    <system:String x:Key="SelectSourceDisk">コピー元物理ドライブ選択 (読み取り)</system:String>
+    <system:String x:Key="SelectTargetDisk">コピー先物理ドライブ選択 (上書き)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 高度な物理クローン分析情報</system:String>
+    <system:String x:Key="CloningInfo1">• ベアメタル複製: 全システムファイル、隠しEFIパーティション、GPT/MBR、およびセキュリティ権限を完全に保存。</system:String>
+    <system:String x:Key="CloningInfo2">• WinPE用に高速化: 4MB のダブルバッファリングを使用してファイルシステムを迂回し、直接高速書き込みを実行。</system:String>
+    <system:String x:Key="CloningInfo3">• コピー先容量要求: コピー先の物理ディスクの容量がコピー元の容量以上であることを確認してください！</system:String>
+    <system:String x:Key="CloneTelemetryTitle">クローン進行テレメトリモニター</system:String>
+    <system:String x:Key="CloneSpeed">リアルタイムクローン速度</system:String>
+    <system:String x:Key="CloneTimeRemaining">残り予測時間</system:String>
+    <system:String x:Key="CloneSourceIndex">ソースインデックス</system:String>
+    <system:String x:Key="CloneTargetIndex">ターゲットインデックス</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 破壊物理データ上書き重大警告</system:String>
+    <system:String x:Key="CloneWarningSubtitle">物理セクタークローンはターゲットディスクの既存データを無条件で完全に上書きします。</system:String>
+    <system:String x:Key="CloneWarningText">警告: クローン処理を開始すると、コピー先物理ディスク上のすべてのパーティション、OS、およびファイルが完全に消去されます！</system:String>
+    <system:String x:Key="CloneWarningConfirmText">危険性を認識した上で、確認のために下に 'CLONE' と入力してください：</system:String>
+    <system:String x:Key="BtnWipeClone">全消去してクローン</system:String>
+</ResourceDictionary>

@@ -1,0 +1,260 @@
+<UserControl x:Class="ApexDiagnostics.Views.DiskScanView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="clr-namespace:ApexDiagnostics.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <Grid Margin="0,0,20,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="{DynamicResource TitleDiskScan}" Style="{StaticResource SectionHeader}" FontSize="22" TextWrapping="Wrap"/>
+                <TextBlock Text="{DynamicResource TitleDiskScanDesc}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Button Content="{DynamicResource BtnRefreshDrives}" Command="{Binding RefreshDisksCommand}" Style="{StaticResource GhostButton}" Width="Auto" MinWidth="130" Padding="15,0" Height="32" Margin="0,0,10,0"/>
+                <Button Content="{DynamicResource BtnStartScan}" Command="{Binding StartCommand}" Style="{StaticResource AccentButton}" Width="Auto" MinWidth="130" Padding="15,0" Height="32" Visibility="{Binding EngineStatus, Converter={StaticResource StartButtonVisibilityConverter}}"/>
+                <Button Content="{DynamicResource BtnStopScan}" Command="{Binding StopCommand}" Style="{StaticResource DangerButton}" Width="Auto" MinWidth="130" Padding="15,0" Height="32" Visibility="{Binding EngineStatus, Converter={StaticResource StopButtonVisibilityConverter}}"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="280"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="220"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Side: Drive Selection & Safety Watchdog -->
+            <Grid Grid.Column="0" Margin="0,0,15,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Disk Selection Cards -->
+                <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                    <ListBox ItemsSource="{Binding AvailableDisks}" 
+                             SelectedItem="{Binding SelectedDisk}"
+                             Background="Transparent" BorderThickness="0"
+                             HorizontalContentAlignment="Stretch">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Card" Margin="0,0,0,12" Padding="12" CornerRadius="6"
+                                                    Background="#0DFFFFFF" BorderThickness="2" BorderBrush="Transparent">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    
+                                                    <!-- Selection Glow / Indicator -->
+                                                    <Border x:Name="Indicator" Grid.ColumnSpan="2" BorderThickness="2,0,0,0" 
+                                                            BorderBrush="{Binding StatusColor}" Margin="-12,-12,0,-12"/>
+
+                                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" Foreground="{Binding StatusColor}" TextWrapping="Wrap"/>
+                                                        <TextBlock Text="{Binding DriveLetters}" FontSize="11" Opacity="0.8" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                                                        <TextBlock FontSize="10.5" Opacity="0.6" Margin="0,4,0,0" TextWrapping="Wrap">
+                                                            <Run Text="{Binding Capacity}"/> <Run Text="GB │ "/> <Run Text="{Binding Model}"/>
+                                                        </TextBlock>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Card" Property="Background" Value="#1AFFFFFF"/>
+                                                    <Setter TargetName="Card" Property="BorderBrush" Value="{Binding StatusColor}"/>
+                                                    <Setter TargetName="Card" Property="Effect">
+                                                        <Setter.Value>
+                                                            <DropShadowEffect BlurRadius="10" Opacity="0.3" Color="{Binding StatusColor}"/>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Trigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Card" Property="Background" Value="#15FFFFFF"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </ScrollViewer>
+
+                <!-- Safety Watchdog Slider -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Margin="0,15,0,0" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource LabelSafetyWatchdog}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                        <TextBlock Text="TEMP CEILING LIMIT" FontSize="9" Opacity="0.5" Margin="0,0,0,4" TextWrapping="Wrap"/>
+                        <Grid>
+                            <Slider Minimum="50" Maximum="85" Value="{Binding DiskCriticalTempC, Mode=TwoWay}" TickFrequency="5" IsSnapToTickEnabled="True" Margin="0,0,50,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding DiskCriticalTempC, StringFormat={}{0:F0}°C}" FontWeight="Bold" FontSize="11" Foreground="{StaticResource AccentOrangeBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Main Scan Area (Middle Column) -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Stats Bar -->
+                <UniformGrid Grid.Row="0" Columns="4" Margin="0,0,0,15">
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelScanSpeed}" Style="{StaticResource MetricLabel}" FontSize="9" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding Speed}" Style="{StaticResource MetricHero}" FontSize="15" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelLatency}" Style="{StaticResource MetricLabel}" FontSize="9" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding Latency, StringFormat={}{0:F1} ms}" Style="{StaticResource MetricHero}" FontSize="15" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelETA}" Style="{StaticResource MetricLabel}" FontSize="9" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ETA}" Style="{StaticResource MetricHero}" FontSize="15" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Padding="10">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelBadSectors}" Style="{StaticResource MetricLabel}" FontSize="9" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding BadSectors}" Style="{StaticResource MetricHero}" FontSize="15" Foreground="{StaticResource AccentRedBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+
+                <!-- Sector Map -->
+                <Border Grid.Row="1" Style="{StaticResource CardBorder}" Padding="5">
+                    <Grid>
+                        <controls:SectorMapControl x:Name="SectorMap" Margin="2"
+                                                   MapData="{Binding MapData}"
+                                                   TotalSectors="{Binding TotalBytes}"
+                                                   ScannedSectors="{Binding ScannedBytes}"/>
+                    </Grid>
+                </Border>
+
+                <!-- Status Bar -->
+                <Grid Grid.Row="2" Margin="0,15,0,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,5">
+                            <TextBlock Text="{Binding EngineStatus, Converter={StaticResource StatusTextConverter}}" FontWeight="SemiBold" Foreground="{StaticResource AccentCyanBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ProgressPercent}" HorizontalAlignment="Right" FontWeight="Bold"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding ProgressValue, Mode=OneWay}" Maximum="100" Height="10" Margin="0,5"/>
+                        <TextBlock Text="{Binding SectorRange}" FontSize="10" Opacity="0.5" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+
+            <!-- Victoria-style Latency Histogram (Right Column) -->
+            <Border Grid.Column="2" Style="{StaticResource CardBorder}" Margin="15,0,0,0" Padding="15">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource LabelLatencyDistribution}" Style="{StaticResource MetricLabel}" Margin="0,0,0,15" FontWeight="Bold" TextWrapping="Wrap"/>
+                    
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid>
+                            <BulletDecorator>
+                                <BulletDecorator.Bullet>
+                                    <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource AccentGreenBrush}"/>
+                                </BulletDecorator.Bullet>
+                                <TextBlock Text="{DynamicResource LabelGoodSectors}" Margin="5,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                            </BulletDecorator>
+                            <TextBlock Text="{Binding GoodSectors, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding GoodSectors, Mode=OneWay}" Maximum="{Binding CurrentState.TotalScannedBlocks, FallbackValue=1}" Foreground="{StaticResource AccentGreenBrush}" Height="6" Margin="0,5,0,0" BorderThickness="0" Background="#1F242C"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid>
+                            <BulletDecorator>
+                                <BulletDecorator.Bullet>
+                                    <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource AccentYellowBrush}"/>
+                                </BulletDecorator.Bullet>
+                                <TextBlock Text="{DynamicResource LabelSlowSectors}" Margin="5,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                            </BulletDecorator>
+                            <TextBlock Text="{Binding SlowSectors, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding SlowSectors, Mode=OneWay}" Maximum="{Binding CurrentState.TotalScannedBlocks, FallbackValue=1}" Foreground="{StaticResource AccentYellowBrush}" Height="6" Margin="0,5,0,0" BorderThickness="0" Background="#1F242C"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid>
+                            <BulletDecorator>
+                                <BulletDecorator.Bullet>
+                                    <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource AccentOrangeBrush}"/>
+                                </BulletDecorator.Bullet>
+                                <TextBlock Text="{DynamicResource LabelDelayedSectors}" Margin="5,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                            </BulletDecorator>
+                            <TextBlock Text="{Binding DelayedSectors, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding DelayedSectors, Mode=OneWay}" Maximum="{Binding CurrentState.TotalScannedBlocks, FallbackValue=1}" Foreground="{StaticResource AccentOrangeBrush}" Height="6" Margin="0,5,0,0" BorderThickness="0" Background="#1F242C"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid>
+                            <BulletDecorator>
+                                <BulletDecorator.Bullet>
+                                    <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource AccentRedBrush}"/>
+                                </BulletDecorator.Bullet>
+                                <TextBlock Text="{DynamicResource LabelWeakSectors}" Margin="5,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                            </BulletDecorator>
+                            <TextBlock Text="{Binding WeakSectors, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding WeakSectors, Mode=OneWay}" Maximum="{Binding CurrentState.TotalScannedBlocks, FallbackValue=1}" Foreground="{StaticResource AccentRedBrush}" Height="6" Margin="0,5,0,0" BorderThickness="0" Background="#1F242C"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid>
+                            <BulletDecorator>
+                                <BulletDecorator.Bullet>
+                                    <Border Width="12" Height="12" CornerRadius="2" Background="{StaticResource AccentPurpleBrush}"/>
+                                </BulletDecorator.Bullet>
+                                <TextBlock Text="{DynamicResource LabelTimeoutSectors}" Margin="5,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                            </BulletDecorator>
+                            <TextBlock Text="{Binding TimeoutSectors, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding TimeoutSectors, Mode=OneWay}" Maximum="{Binding CurrentState.TotalScannedBlocks, FallbackValue=1}" Foreground="{StaticResource AccentPurpleBrush}" Height="6" Margin="0,5,0,0" BorderThickness="0" Background="#1F242C"/>
+                    </StackPanel>
+
+                    <StackPanel Margin="0,0,0,12">
+                        <Grid>
+                            <BulletDecorator>
+                                <BulletDecorator.Bullet>
+                                    <Border Width="12" Height="12" CornerRadius="2" Background="#8B0000"/>
+                                </BulletDecorator.Bullet>
+                                <TextBlock Text="{DynamicResource LabelBadErrorSectors}" Margin="5,0,0,0" FontSize="11" FontWeight="SemiBold"/>
+                            </BulletDecorator>
+                            <TextBlock Text="{Binding BadSectors, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="11" FontWeight="Bold" Foreground="{StaticResource AccentRedBrush}"/>
+                        </Grid>
+                        <ProgressBar Value="{Binding BadSectors, Mode=OneWay}" Maximum="{Binding CurrentState.TotalScannedBlocks, FallbackValue=1}" Foreground="#8B0000" Height="6" Margin="0,5,0,0" BorderThickness="0" Background="#1F242C"/>
+                    </StackPanel>
+
+                    <Separator Margin="0,10,0,10"/>
+                    <Grid>
+                        <TextBlock Text="{DynamicResource LabelTotalScanned}" FontSize="10" Opacity="0.5" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding CurrentState.TotalScannedBlocks, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontSize="10" FontWeight="SemiBold" Opacity="0.7"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

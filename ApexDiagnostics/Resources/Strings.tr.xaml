@@ -1,0 +1,182 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">PANEL</system:String>
+    <system:String x:Key="NavCpuTest">İŞLEMCİ STRES &amp; DOĞRULAMA</system:String>
+    <system:String x:Key="NavRamTest">RAM DİAGNOSTİK</system:String>
+    <system:String x:Key="NavDiskScan">DİSK YÜZEY TARAMASI</system:String>
+    <system:String x:Key="NavSystemInfo">SİSTEM BİLGİSİ</system:String>
+    <system:String x:Key="NavExplorer">DOSYA YÖNETİCİSİ</system:String>
+    <system:String x:Key="NavClone">DİSK KLONLAYICI</system:String>
+    <system:String x:Key="LabelLanguageSelector">🌐 LANGUAGE / DİL SEÇİMİ</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">SİSTEM GENEL BAKIŞ</system:String>
+    <system:String x:Key="StatCpuLoad">CPU ANLIK YÜKÜ</system:String>
+    <system:String x:Key="StatRamUsage">RAM FİZİKSEL KULLANIMI</system:String>
+    <system:String x:Key="StatDiskHealth">DİSK SICAKLIĞI</system:String>
+    <system:String x:Key="SystemSummary">DONANIM MOTORU TELEMETRİ DURUMU</system:String>
+    <system:String x:Key="LabelCpuTemp">CPU SICAKLIĞI</system:String>
+    <system:String x:Key="LabelDownload">İNDİRME (DL)</system:String>
+    <system:String x:Key="LabelUpload">YÜKLEME (UL)</system:String>
+    <system:String x:Key="LabelPeakThroughput">ZİRVE VERİ HIZI</system:String>
+    <system:String x:Key="LabelRamUsagePercent">RAM KULLANIMI (%)</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">İŞLEMCİ STRES &amp; DOĞRULAMA</system:String>
+    <system:String x:Key="LabelCpuStatus">DURUM</system:String>
+    <system:String x:Key="LabelElapsedTime">GEÇEN SÜRE</system:String>
+    <system:String x:Key="LabelCpuPower">GÜÇ</system:String>
+    <system:String x:Key="LabelInstructions">TALİMAT SETLERİ</system:String>
+    <system:String x:Key="BtnStartTest">TESTİ BAŞLAT</system:String>
+    <system:String x:Key="BtnStopTest">TESTİ DURDUR</system:String>
+    <system:String x:Key="CpuUsageHistory">CPU KULLANIM GEÇMİŞİ (%)</system:String>
+    <system:String x:Key="CpuTempHistory">CPU SICAKLIK GEÇMİŞİ (°C)</system:String>
+    <system:String x:Key="TitleTestControl">TEST KONTROLÜ</system:String>
+    <system:String x:Key="LabelSafetyCeiling">GÜVENLİK SICAKLIK SINIRI</system:String>
+    <system:String x:Key="LabelHardwareStatus">DONANIM DURUMU</system:String>
+    <system:String x:Key="LabelLiveSensors">ANLIK TELEMETRİ SENSÖRLERİ</system:String>
+    <system:String x:Key="LabelLogicalCores">MANTIKSAL ÇEKİRDEKLER</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">BELLEK TOKSİSİTE TEŞHİSİ</system:String>
+    <system:String x:Key="LabelRamAllocated">AYRILAN BELLEK</system:String>
+    <system:String x:Key="LabelRamCoverage">KAPSAMA ALANI</system:String>
+    <system:String x:Key="LabelMemoryToxicity">BELLEK SAĞLIK TELEMETRİSİ</system:String>
+    <system:String x:Key="LabelPass">GEÇİŞ (PASS)</system:String>
+    <system:String x:Key="LabelErrors">HATALAR</system:String>
+    <system:String x:Key="LabelQuickScan">Hızlı Tarama</system:String>
+    <system:String x:Key="LabelDeepValidation">Derin Doğrulama</system:String>
+    <system:String x:Key="LabelCurrentTest">AKTİF TEST</system:String>
+    <system:String x:Key="LabelPhysicalMemoryMap">FİZİKSEL BELLEK HARİTASI</system:String>
+    <system:String x:Key="LabelNoErrors">HİÇBİR HATA TESPİT EDİLMEDİ</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">DİSK YÜZEY DOĞRULAMA VE TARAMA</system:String>
+    <system:String x:Key="SelectPhysicalDisk">FİZİKSEL DİSK SEÇİN</system:String>
+    <system:String x:Key="BtnStartScan">TARAMAYI BAŞLAT</system:String>
+    <system:String x:Key="BtnStopScan">TARAMAYI DURDUR</system:String>
+    <system:String x:Key="LabelBadSectors">BOZUK SEKTÖRLER</system:String>
+    <system:String x:Key="LabelScanSpeed">TARAMA HIZI</system:String>
+    <system:String x:Key="TitleDiskScanDesc">Yüksek hassasiyetli sektör doğrulama ve gecikme analizi</system:String>
+    <system:String x:Key="LabelLatency">GECİKME</system:String>
+    <system:String x:Key="LabelETA">TAHMİNİ SÜRE</system:String>
+    <system:String x:Key="LabelLatencyDistribution">GECİKME DAĞILIMI</system:String>
+    <system:String x:Key="LabelSafetyWatchdog">GÜVENLİK BEKÇİSİ</system:String>
+    <system:String x:Key="LabelGoodSectors"> İyi (&lt; 50ms)</system:String>
+    <system:String x:Key="LabelSlowSectors"> Yavaş (&lt; 150ms)</system:String>
+    <system:String x:Key="LabelDelayedSectors"> Gecikmeli (&lt; 200ms)</system:String>
+    <system:String x:Key="LabelWeakSectors"> Zayıf (&lt; 1000ms)</system:String>
+    <system:String x:Key="LabelTimeoutSectors"> Zaman Aşımı (&gt; 5000ms)</system:String>
+    <system:String x:Key="LabelBadErrorSectors"> Bozuk / Hata</system:String>
+    <system:String x:Key="LabelTotalScanned">Toplam Taranan:</system:String>
+    
+    <!-- System Info & Hardware Specs -->
+    <system:String x:Key="TitleSystemInfo">DONANIM BİLEŞENLERİ ENVANTERİ</system:String>
+    <system:String x:Key="ClickToCopy">Kopyalamak için değere tıklayın</system:String>
+    <system:String x:Key="SysCatCpu">İŞLEMCİ (CPU)</system:String>
+    <system:String x:Key="SysCatRam">BELLEK (RAM)</system:String>
+    <system:String x:Key="SysCatStorage">DEPOLAMA (DİSKLER)</system:String>
+    <system:String x:Key="SysCatMotherboard">ANAKART &amp; BIOS</system:String>
+    <system:String x:Key="SysCatGpu">EKRAN KARTI (GPU)</system:String>
+    <system:String x:Key="SysPropModel">Model</system:String>
+    <system:String x:Key="SysPropCoresThreads">Çekirdekler / İş Parçacıkları</system:String>
+    <system:String x:Key="SysPropArchitecture">Mimari</system:String>
+    <system:String x:Key="SysPropSocket">Soket</system:String>
+    <system:String x:Key="SysPropL2Cache">L2 Önbellek</system:String>
+    <system:String x:Key="SysPropL3Cache">L3 Önbellek</system:String>
+    <system:String x:Key="SysPropManufacturer">Üretici</system:String>
+    <system:String x:Key="SysPropMaxClockSpeed">Maksimum Frekans</system:String>
+    <system:String x:Key="SysPropVersion">Sürüm</system:String>
+    <system:String x:Key="SysPropTotalPhysical">Toplam Fiziksel</system:String>
+    <system:String x:Key="SysPropSlot">Slot</system:String>
+    <system:String x:Key="SysPropCapacity">Kapasite</system:String>
+    <system:String x:Key="SysPropSpeed">Hız</system:String>
+    <system:String x:Key="SysPropPartNumber">Parça Numarası</system:String>
+    <system:String x:Key="SysPropFormFactor">Form Faktörü</system:String>
+    <system:String x:Key="SysPropTotalSize">Toplam Boyut</system:String>
+    <system:String x:Key="SysPropHealthStatus">Sağlık Durumu</system:String>
+    <system:String x:Key="SysPropSerial">Seri Numarası</system:String>
+    <system:String x:Key="SysPropDiskIndex">Disk İndeksi</system:String>
+    <system:String x:Key="SysPropDetailedType">Detaylı Sürücü Türü</system:String>
+    <system:String x:Key="SysPropProduct">Ürün</system:String>
+    <system:String x:Key="SysPropReleaseDate">Yayınlanma Tarihi</system:String>
+    <system:String x:Key="SysPropDriverVersion">Sürücü Sürümü</system:String>
+    <system:String x:Key="SysPropAdapterRAM">Ekran Kartı Belleği</system:String>
+    <system:String x:Key="SysStickLabel">MODÜL</system:String>
+    <system:String x:Key="SysDiskLabel">DİSK</system:String>
+    <system:String x:Key="DiskTypeNvmeGen4">NVMe SSD (Ultra Hızlı PCIe Gen 4.0)</system:String>
+    <system:String x:Key="DiskTypeNvmeGen5">NVMe SSD (Ekstrem PCIe Gen 5.0)</system:String>
+    <system:String x:Key="DiskTypeNvmeGen3">NVMe SSD (Yüksek Hızlı PCIe Gen 3.0)</system:String>
+    <system:String x:Key="DiskTypeNvmeGeneric">NVMe SSD (PCIe Katı Hal Sürücüsü)</system:String>
+    <system:String x:Key="LabelSolidState">Katı Hal Sürücüsü</system:String>
+    <system:String x:Key="DiskTypePortableSsd">Taşınabilir SSD (USB Harici)</system:String>
+    <system:String x:Key="DiskTypeSataSsd">SATA SSD (Yüksek Hızlı Katı Hal)</system:String>
+    <system:String x:Key="DiskTypeUsbDisk">USB Harici Disk Sürücüsü</system:String>
+    <system:String x:Key="DiskTypeSataHdd">SATA Sabit Disk (Mekanik HDD)</system:String>
+    
+    <!-- File Explorer -->
+    <system:String x:Key="LabelFileName">Adı</system:String>
+    <system:String x:Key="LabelFileSize">Boyut</system:String>
+    <system:String x:Key="LabelFileModified">Değiştirme Tarihi</system:String>
+    <system:String x:Key="LabelAvailableDrives">KULLANILABİLİR SÜRÜCÜLER</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">APEX VERİ KURTARMA &amp; YEDEKLEME</system:String>
+    <system:String x:Key="BtnBackupWizard">HIZLI VERİ KURTARMA SİHİRBAZI</system:String>
+    <system:String x:Key="WizardTitle">APEX ASENKRON VERİ KURTARMA SİHİRBAZI</system:String>
+    <system:String x:Key="WizSelectProfile">1. Yedeklenecek kullanıcı profilini seçin</system:String>
+    <system:String x:Key="WizSelectDest">2. Yedekleme konumunu seçin</system:String>
+    <system:String x:Key="WizSelectOptions">3. Ek kurtarma motoru seçenekleri</system:String>
+    <system:String x:Key="WizOptCreds">Kayıtlı Windows Kimlik Bilgilerini &amp; Çevrimdışı Vault Anahtarlarını Yedekle</system:String>
+    <system:String x:Key="WizOptRoot">C: Sürücüsündeki Diğer Dosya ve Klasörleri Tara &amp; Kurtar</system:String>
+    <system:String x:Key="BtnStartRescue">KURTARMAYI BAŞLAT</system:String>
+    <system:String x:Key="BtnCancel">İPTAL</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">DÜŞÜK SEVİYELİ BİREBİR DİSK KLONLAMA</system:String>
+    <system:String x:Key="TitleCloneDesc">Disk göçleri ve tam sistem geri yüklemeleri için sektörden sektöre doğrudan çoğaltma.</system:String>
+    <system:String x:Key="BtnRefreshDrives">DİSKLERİ YENİLE</system:String>
+    <system:String x:Key="BtnStartCloning">KLONLAMAYI BAŞLAT</system:String>
+    <system:String x:Key="SelectSourceDisk">KAYNAK FİZİKSEL DİSKİ SEÇİN (OKUNACAK SÜRÜCÜ)</system:String>
+    <system:String x:Key="SelectTargetDisk">HEDEF FİZİKSEL DİSKİ SEÇİN (SİLİNİP ÜZERİNE YAZILACAK)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 GELİŞMİŞ FİZİKSEL KLONLAMA BİLGİSİ</system:String>
+    <system:String x:Key="CloningInfo1">• Birebir Klonlama: Sektörden sektöre kopyalama işlemi gizli sistem bölümlerini, bölüm düzenlerini, Windows Kimlik Kasasını ve tüm güvenlik izinlerini kopyalar.</system:String>
+    <system:String x:Key="CloningInfo2">• WinPE Optimizasyonu: Çok izlekli (multi-threaded) 4MB ara bellek blokları kullanarak doğrudan ham disk tanıtıcıları ile yüksek hızlı yazma gerçekleştirir.</system:String>
+    <system:String x:Key="CloningInfo3">• Hedef Kapasitesi: Bölüm kırpılmalarını önlemek için hedef fiziksel diskin boyutunun kaynak diske eşit veya daha büyük olduğundan emin olun!</system:String>
+    <system:String x:Key="CloneTelemetryTitle">ANLIK TELEMETRİ EKRANI</system:String>
+    <system:String x:Key="CloneSpeed">KLONLAMA HIZI</system:String>
+    <system:String x:Key="CloneTimeRemaining">KALAN SÜRE</system:String>
+    <system:String x:Key="CloneSourceIndex">KAYNAK İNDEKSİ</system:String>
+    <system:String x:Key="CloneTargetIndex">HEDEF İNDEKSİ</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 KRİTİK VERİ KAYBI UYARISI</system:String>
+    <system:String x:Key="CloneWarningSubtitle">Düşük seviyeli sektör kopyalama, hedef diskteki tüm mevcut verileri silecektir.</system:String>
+    <system:String x:Key="CloneWarningText">UYARI: Bu işlemi başlatmak, hedef fiziksel sürücüde bulunan tüm bölümleri, dosyaları ve işletim sistemlerini tamamen ve kalıcı olarak silecektir!</system:String>
+    <system:String x:Key="CloneWarningConfirmText">Onaylamak için aşağıdaki alana 'CLONE' yazın:</system:String>
+    <system:String x:Key="BtnWipeClone">SİL VE KLONLA</system:String>
+    
+    <!-- Dynamic States & Thermal Status -->
+    <system:String x:Key="ThermalThrottlingActive">TERMAL HIZ KISITLAMASI AKTİF (SICAK!)</system:String>
+    <system:String x:Key="ThermalStateNominal">TERMAL DURUM NORMAL (SERİN)</system:String>
+    <system:String x:Key="StatusIdle">BOŞTA</system:String>
+    <system:String x:Key="StatusStressTesting">STRES TESTİ AKTİF</system:String>
+    <system:String x:Key="StatusTestingRam">RAM TESTİ YAPILIYOR</system:String>
+    <system:String x:Key="StatusScanning">YÜZEY TARAMASI YAPILIYOR</system:String>
+    <system:String x:Key="StatusCompleted">TAMAMLANDI</system:String>
+    <system:String x:Key="StatusPaused">DURAKLATILDI</system:String>
+
+    <!-- Cloner & MainWindow Overlays -->
+    <system:String x:Key="CloneSourceLabel">🟢 OKUNACAK KAYNAK DİSK (GÜVENLİ):</system:String>
+    <system:String x:Key="CloneTargetWarningLabel">🚨🚨🚨 SİLİNECEK HEDEF SÜRÜCÜ (TEHLİKE - TÜM VERİLER SİLİNECEK!) 🚨🚨🚨</system:String>
+    <system:String x:Key="CloneWipeNote">(BU DİSKTEKİ TÜM VERİLER KALICI VE GERİ DÖNDÜRÜLEMEZ ŞEKİLDE SİLİNECEKTİR!)</system:String>
+    <system:String x:Key="CloneEngineActive">Asenkron Ham G/Ç Sektör Kopyalama Motoru Aktif</system:String>
+    <system:String x:Key="CloneStatusSelect">Klonlamayı başlatmak için Kaynak ve Hedef sürücüleri seçin.</system:String>
+    <system:String x:Key="CloneStatusCalculating">Hesaplanıyor...</system:String>
+    <system:String x:Key="CloneStatusInitializing">Düşük seviyeli sektör klonlama oturumu başlatılıyor...</system:String>
+    <system:String x:Key="CloneStatusCompleted">Sürücü klonlama başarıyla tamamlandı!</system:String>
+    <system:String x:Key="LabelCloned">Klonlandı</system:String>
+    <system:String x:Key="LabelSafetyAlert">⚠ GÜVENLİK UYARISI</system:String>
+    <system:String x:Key="BtnAcknowledge">Anladım / Kapat</system:String>
+</ResourceDictionary>

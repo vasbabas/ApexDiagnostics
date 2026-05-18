@@ -1,0 +1,79 @@
+<UserControl x:Class="ApexDiagnostics.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:ApexDiagnostics.ViewModels"
+             xmlns:controls="clr-namespace:ApexDiagnostics.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,20,0">
+            <TextBlock Text="{DynamicResource TitleDashboard}" Style="{StaticResource SectionHeader}" FontSize="24" TextWrapping="Wrap"/>
+            <TextBlock Text="{Binding CpuName}" Style="{StaticResource MetricLabel}" Margin="0,0,0,20" TextWrapping="Wrap"/>
+            
+            <UniformGrid Columns="3" HorizontalAlignment="Stretch" Margin="0,0,0,20">
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Height="160">
+                    <controls:CircularGauge Value="{Binding CpuUsage}" MaxValue="100" Label="{DynamicResource StatCpuLoad}" Unit="%" Stroke="{StaticResource AccentBlueBrush}"/>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Height="160">
+                    <controls:CircularGauge Value="{Binding CpuTemp}" MaxValue="100" Label="{DynamicResource LabelCpuTemp}" Unit="°C" Stroke="{StaticResource AccentOrangeBrush}"/>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Height="160">
+                    <controls:CircularGauge Value="{Binding RamUsagePercent}" MaxValue="100" Label="{DynamicResource StatRamUsage}" Unit="%" Stroke="{StaticResource AccentPurpleBrush}"/>
+                </Border>
+            </UniformGrid>
+
+            <UniformGrid Columns="3" HorizontalAlignment="Stretch" Margin="0,0,0,20">
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource LabelDownload}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding DownloadSpeed}" Style="{StaticResource MetricHero}" FontSize="20" Foreground="{StaticResource AccentCyanBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource LabelUpload}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding UploadSpeed}" Style="{StaticResource MetricHero}" FontSize="20" Foreground="{StaticResource AccentPurpleBrush}"/>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource CardBorder}" Padding="12">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource LabelPeakThroughput}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                        <TextBlock Text="{Binding PeakThroughput}" Style="{StaticResource MetricHero}" FontSize="20" Foreground="{StaticResource AccentBlueBrush}"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+            
+            <!-- Live Graphs -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <Border Grid.Column="0" Style="{StaticResource CardBorder}" Height="180" Margin="0,0,10,0" Padding="12">
+                    <Grid>
+                        <TextBlock Text="{DynamicResource CpuUsageHistory}" Style="{StaticResource MetricLabel}" VerticalAlignment="Top" TextWrapping="Wrap"/>
+                        <controls:LiveGraph Values="{Binding CpuHistory}" MaxValue="100" Stroke="{StaticResource AccentBlueBrush}" Fill="#1A58A6FF" Margin="0,25,0,0"/>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="1" Style="{StaticResource CardBorder}" Height="180" Margin="0,0,10,0" Padding="12">
+                    <Grid>
+                        <TextBlock Text="{DynamicResource CpuTempHistory}" Style="{StaticResource MetricLabel}" VerticalAlignment="Top" TextWrapping="Wrap"/>
+                        <controls:LiveGraph Values="{Binding TempHistory}" MaxValue="100" Stroke="{StaticResource AccentOrangeBrush}" Fill="#1AF0883E" Margin="0,25,0,0"/>
+                    </Grid>
+                </Border>
+
+                <Border Grid.Column="2" Style="{StaticResource CardBorder}" Height="180" Padding="12">
+                    <Grid>
+                        <TextBlock Text="{DynamicResource LabelRamUsagePercent}" Style="{StaticResource MetricLabel}" VerticalAlignment="Top" TextWrapping="Wrap"/>
+                        <controls:LiveGraph Values="{Binding RamHistory}" MaxValue="100" Stroke="{StaticResource AccentPurpleBrush}" Fill="#1ABC8CFF" Margin="0,25,0,0"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

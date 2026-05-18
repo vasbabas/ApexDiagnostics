@@ -1,0 +1,107 @@
+<Window x:Class="ApexDiagnostics.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ApexDiagnostics.ViewModels"
+        xmlns:views="clr-namespace:ApexDiagnostics.Views"
+        Title="Apex Hardware Diagnostic Suite" Height="768" Width="1024"
+        WindowStartupLocation="CenterScreen" Background="{StaticResource BgPrimaryBrush}">
+
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource BgSurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+            <Grid Margin="0,20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Grid.Row="0" Text="APEX" Style="{StaticResource MetricHero}" FontSize="24" FontWeight="Bold" Margin="24,0,0,30" Foreground="{StaticResource TextPrimaryBrush}"/>
+                
+                <StackPanel Grid.Row="1">
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavDashboard}" IsChecked="True"
+                                 Command="{Binding NavigateCommand}" CommandParameter="Dashboard"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavCpuTest}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="CpuTest"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavRamTest}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="RamTest"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavDiskScan}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="DiskScan"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavSystemInfo}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="SystemInfo"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavExplorer}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="Explorer"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavClone}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="Clone"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Margin="20,0,20,25">
+                    <TextBlock Text="{DynamicResource LabelLanguageSelector}" Foreground="{StaticResource TextSecondaryBrush}" FontSize="10" FontWeight="Bold" Margin="4,0,0,6"/>
+                    <ComboBox x:Name="LanguageSelector" Height="30" MaxDropDownHeight="220" SelectionChanged="LanguageSelector_SelectionChanged">
+                        <ComboBoxItem Content="English" Tag="EN" IsSelected="True"/>
+                        <ComboBoxItem Content="Türkçe" Tag="TR"/>
+                        <ComboBoxItem Content="Deutsch" Tag="DE"/>
+                        <ComboBoxItem Content="Français" Tag="FR"/>
+                        <ComboBoxItem Content="Español" Tag="ES"/>
+                        <ComboBoxItem Content="Italiano" Tag="IT"/>
+                        <ComboBoxItem Content="Português" Tag="PT"/>
+                        <ComboBoxItem Content="Русский" Tag="RU"/>
+                        <ComboBoxItem Content="简体中文" Tag="ZH"/>
+                        <ComboBoxItem Content="日本語" Tag="JA"/>
+                    </ComboBox>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Main Content -->
+        <Grid Grid.Column="1" Margin="24">
+            <ContentControl Content="{Binding CurrentView}">
+                <ContentControl.Resources>
+                    <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                        <views:DashboardView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:CpuTestViewModel}">
+                        <views:CpuTestView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:RamTestViewModel}">
+                        <views:RamTestView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:DiskScanViewModel}">
+                        <views:DiskScanView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:SystemInfoViewModel}">
+                        <views:SystemInfoView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:ExplorerViewModel}">
+                        <views:ExplorerView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:CloneViewModel}">
+                        <views:CloneView/>
+                    </DataTemplate>
+                </ContentControl.Resources>
+            </ContentControl>
+        </Grid>
+
+        <!-- Alert Overlay -->
+        <Grid Grid.ColumnSpan="2" Background="#99000000" Visibility="{Binding IsAlertVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+            <Border Style="{StaticResource CardBorder}" Background="{StaticResource BgSurfaceBrush}" 
+                    BorderBrush="{StaticResource AccentRedBrush}" BorderThickness="2"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" Width="400" Padding="30">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource LabelSafetyAlert}" Foreground="{StaticResource AccentRedBrush}" FontSize="20" FontWeight="Bold" Margin="0,0,0,15"/>
+                    <TextBlock Text="{Binding CriticalAlertMessage}" TextWrapping="Wrap" Margin="0,0,0,25" FontSize="14"/>
+                    <Button Content="{DynamicResource BtnAcknowledge}" Style="{StaticResource DangerButton}" HorizontalAlignment="Right" Command="{Binding DismissAlertCommand}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

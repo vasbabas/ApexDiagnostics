@@ -1,0 +1,37 @@
+## Visual Studio & C# Cache Exclusions
+.vs/
+[Db]bin/
+[Db]obj/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Compilation & Publish Outputs
+*.pdb
+*.dll
+*.exe
+*.msi
+*.nupkg
+
+## Windows System & Temp Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp
+*.log
+
+## WinPE Working Directory Exclusions
+/WinPE_ApexDesktop/
+/WinPE_Apex/
+mount/
+media/
+boot.wim
+
+## Antigravity AI Brain & Local Workspace Cache
+.gemini/
+artifacts/
+logs/

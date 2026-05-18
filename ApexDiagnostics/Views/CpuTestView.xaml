@@ -1,0 +1,195 @@
+<UserControl x:Class="ApexDiagnostics.Views.CpuTestView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:controls="clr-namespace:ApexDiagnostics.Controls"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="900">
+    <Grid Margin="0,0,20,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header & Stats -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel>
+                <TextBlock Text="{DynamicResource TitleCpuTest}" Style="{StaticResource SectionHeader}" FontSize="22" TextWrapping="Wrap"/>
+                
+                <UniformGrid Columns="4" Margin="0,10,0,0">
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelCpuStatus}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding EngineStatus, Converter={StaticResource StatusTextConverter}}" Style="{StaticResource MetricHero}" FontSize="20" 
+                                       Foreground="{Binding EngineStatus, Converter={StaticResource StatusColorConverter}}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelElapsedTime}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding ElapsedTime}" Style="{StaticResource MetricHero}" FontSize="20" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelCpuPower}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CpuPackageWatts, StringFormat={}{0:F1} W}" Style="{StaticResource MetricHero}" FontSize="20" Foreground="{StaticResource AccentYellowBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                    <Border Style="{StaticResource CardBorder}" Padding="12">
+                        <StackPanel>
+                            <TextBlock Text="{DynamicResource LabelInstructions}" Style="{StaticResource MetricLabel}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding InstructionSets}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Border>
+                </UniformGrid>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0">
+                <Button Content="{DynamicResource BtnStartTest}" Style="{StaticResource GreenButton}" Command="{Binding StartCommand}" Width="Auto" MinWidth="130" Padding="15,0" Height="32" Margin="0,0,10,0"
+                        Visibility="{Binding EngineStatus, Converter={StaticResource StartButtonVisibilityConverter}}"/>
+                <Button Content="{DynamicResource BtnStopTest}" Style="{StaticResource DangerButton}" Command="{Binding StopCommand}" Width="Auto" MinWidth="130" Padding="15,0" Height="32"
+                        Visibility="{Binding EngineStatus, Converter={StaticResource StopButtonVisibilityConverter}}"/>
+            </StackPanel>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Graphs & Per-Core -->
+            <ScrollViewer Grid.Column="0" Margin="0,0,10,0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <Border Style="{StaticResource CardBorder}" Height="180" Margin="0,0,0,15" Padding="12">
+                        <Grid>
+                            <TextBlock Text="{DynamicResource CpuUsageHistory}" Style="{StaticResource MetricLabel}" VerticalAlignment="Top" TextWrapping="Wrap"/>
+                            <controls:LiveGraph Values="{Binding CpuHistory}" MaxValue="100" Stroke="{StaticResource AccentBlueBrush}" Fill="#1A58A6FF" Margin="0,20,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <Border Style="{StaticResource CardBorder}" Height="180" Margin="0,0,0,15" Padding="12">
+                        <Grid>
+                            <TextBlock Text="{DynamicResource CpuTempHistory}" Style="{StaticResource MetricLabel}" VerticalAlignment="Top" TextWrapping="Wrap"/>
+                            <controls:LiveGraph Values="{Binding TempHistory}" MaxValue="100" Stroke="{StaticResource AccentOrangeBrush}" Fill="#1AF0883E" Margin="0,20,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <TextBlock Text="{DynamicResource LabelLogicalCores}" Style="{StaticResource MetricLabel}" Margin="0,10,0,10" TextWrapping="Wrap"/>
+                    <ItemsControl ItemsSource="{Binding Cores}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="4"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource InnerCardBorder}" Margin="2" Padding="8">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Index, StringFormat=CORE {0}}" FontSize="10" Foreground="{StaticResource TextSecondaryBrush}"/>
+                                        <Grid>
+                                            <TextBlock Text="{Binding Usage, StringFormat={}{0:F0}%}" FontWeight="Bold" FontSize="14"/>
+                                            <TextBlock Text="{Binding Clock, StringFormat={}{0} MHz}" FontSize="9" HorizontalAlignment="Right" VerticalAlignment="Bottom" Foreground="{StaticResource AccentCyanBrush}"/>
+                                        </Grid>
+                                        <ProgressBar Value="{Binding Usage}" Margin="0,5,0,2"/>
+                                        <TextBlock Text="{Binding Temp, StringFormat={}{0}°C}" FontSize="11" Foreground="{StaticResource AccentOrangeBrush}" HorizontalAlignment="Right"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- Right: Stats Panel -->
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,15" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource TitleTestControl}" Style="{StaticResource MetricLabel}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <UniformGrid Columns="2" Margin="0,0,0,15">
+                            <Button Content="{DynamicResource BtnStartTest}" Command="{Binding StartCommand}" Style="{StaticResource AccentButton}" Margin="0,0,5,0" Height="30" Visibility="{Binding EngineStatus, Converter={StaticResource StartButtonVisibilityConverter}}"/>
+                            <Button Content="{DynamicResource BtnStopTest}" Command="{Binding StopCommand}" Style="{StaticResource DangerButton}" Margin="5,0,0,0" Height="30" Visibility="{Binding EngineStatus, Converter={StaticResource StopButtonVisibilityConverter}}"/>
+                        </UniformGrid>
+
+                        <TextBlock Text="{DynamicResource LabelSafetyCeiling}" Style="{StaticResource MetricLabel}" Margin="0,5,0,5" TextWrapping="Wrap"/>
+                        <Grid Margin="0,0,0,15">
+                            <Slider Minimum="70" Maximum="100" Value="{Binding CpuCriticalTempC, Mode=TwoWay}" TickFrequency="5" IsSnapToTickEnabled="True" Margin="0,0,55,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding CpuCriticalTempC, StringFormat={}{0:F0}°C}" FontWeight="Bold" FontSize="12" Foreground="{StaticResource AccentOrangeBrush}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <TextBlock Text="{DynamicResource LabelHardwareStatus}" Style="{StaticResource MetricLabel}" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <Border x:Name="ThrottlingIndicator" Padding="12" CornerRadius="6" Margin="0,0,0,15"
+                                Background="{Binding IsThrottling, Converter={StaticResource ThrottleBgConverter}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="⚠" FontSize="18" Margin="0,0,10,0" 
+                                           VerticalAlignment="Center"
+                                           Visibility="{Binding IsThrottling, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding IsThrottling, Converter={StaticResource ThrottleTextConverter}}" 
+                                               FontWeight="Bold" FontSize="12" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding ThrottlingReason}" 
+                                               FontSize="10.5" Opacity="0.8" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Text="{DynamicResource LabelLiveSensors}" Style="{StaticResource MetricLabel}" Margin="0,10,0,10" TextWrapping="Wrap"/>
+                        <Border Style="{StaticResource InnerCardBorder}" Padding="5" Margin="0,0,0,15">
+                            <ItemsControl ItemsSource="{Binding Sensors}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="5,3">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Category}" FontSize="9" Opacity="0.5" Width="50" TextWrapping="Wrap"/>
+                                                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Value}" FontWeight="Bold" Foreground="{StaticResource AccentCyanBrush}"/>
+                                                <TextBlock Text="{Binding Unit}" FontSize="10" Margin="3,0,0,0" Opacity="0.7"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+
+                        <TextBlock Text="ACTIVITY LOG" Style="{StaticResource MetricLabel}" Margin="0,5,0,5" TextWrapping="Wrap"/>
+                        <Border Style="{StaticResource InnerCardBorder}" Height="120" Padding="5" Margin="0,0,0,15">
+                            <ListBox ItemsSource="{Binding ActivityLog}" Background="Transparent" BorderThickness="0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontSize="10" TextWrapping="Wrap" Foreground="#C9D1D9"/>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+
+                        <Grid Margin="0,10,0,5">
+                            <TextBlock Text="Total Operations" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding TotalOps, StringFormat={}{0:N0}}" HorizontalAlignment="Right" FontWeight="Bold"/>
+                        </Grid>
+                        <Separator/>
+                        <Grid Margin="0,10,0,5">
+                            <TextBlock Text="Current Load" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CpuUsage, StringFormat={}{0:F1}%}" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource AccentBlueBrush}"/>
+                        </Grid>
+                        <Grid Margin="0,0,0,5">
+                            <TextBlock Text="Peak Temperature" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding CpuTemp, StringFormat={}{0:F1}°C}" HorizontalAlignment="Right" FontWeight="Bold" Foreground="{StaticResource AccentOrangeBrush}"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

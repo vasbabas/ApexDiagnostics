@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">DASHBOARD</system:String>
+    <system:String x:Key="NavCpuTest">CPU-STRESSTEST</system:String>
+    <system:String x:Key="NavRamTest">RAM-DIAGNOSE</system:String>
+    <system:String x:Key="NavDiskScan">DOPPELTER SOBER-SCAN</system:String>
+    <system:String x:Key="NavSystemInfo">SYSTEM-INFO</system:String>
+    <system:String x:Key="NavExplorer">DATEI-EXPLORER</system:String>
+    <system:String x:Key="NavClone">FESTPLATTENKLONER</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">SYSTEMÜBERSICHT</system:String>
+    <system:String x:Key="StatCpuLoad">CPU-ECHTZEITLAST</system:String>
+    <system:String x:Key="StatRamUsage">RAM-PHYSISCHE NUTZUNG</system:String>
+    <system:String x:Key="StatDiskHealth">FESTPLATTENTEMPERATUR</system:String>
+    <system:String x:Key="SystemSummary">HARDWARE-TELEMETRIESTATUS</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">CPU STRESS &amp; VALIDIERUNG</system:String>
+    <system:String x:Key="LabelCpuStatus">STATUS</system:String>
+    <system:String x:Key="LabelElapsedTime">VERSTRICHEN</system:String>
+    <system:String x:Key="LabelCpuPower">LEISTUNG</system:String>
+    <system:String x:Key="LabelInstructions">BEFEHLSSÄTZE</system:String>
+    <system:String x:Key="BtnStartTest">TEST STARTEN</system:String>
+    <system:String x:Key="BtnStopTest">TEST STOPPEN</system:String>
+    <system:String x:Key="CpuUsageHistory">CPU-AUSLASTUNGSVERLAUF (%)</system:String>
+    <system:String x:Key="CpuTempHistory">CPU-TEMPERATURVERLAUF (°C)</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">SPEICHERTOXIZITÄTSDIAGNOSE</system:String>
+    <system:String x:Key="LabelRamAllocated">ZUGEWIESEN</system:String>
+    <system:String x:Key="LabelRamCoverage">ABDECKUNG</system:String>
+    <system:String x:Key="LabelMemoryToxicity">SPEICHERGESUNDHEITSSTATUS</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">TIEFEN-OBERFLÄCHENVERIFIZIERER</system:String>
+    <system:String x:Key="SelectPhysicalDisk">PHYSIKALISCHE DISK AUSWÄHLEN</system:String>
+    <system:String x:Key="BtnStartScan">SCAN STARTEN</system:String>
+    <system:String x:Key="BtnStopScan">SCAN STOPPEN</system:String>
+    <system:String x:Key="LabelBadSectors">FEHLERHAFTE SEKTOREN</system:String>
+    <system:String x:Key="LabelScanSpeed">SCANGESCHWINDIGKEIT</system:String>
+    
+    <!-- System Info -->
+    <system:String x:Key="TitleSystemInfo">KOMPONENTEN-SPEZIFIKATIONSLISTE</system:String>
+    <system:String x:Key="ClickToCopy">Klicken Sie auf den Wert, um ihn zu kopieren</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">APEX RECOVERY-ASSISTENT</system:String>
+    <system:String x:Key="BtnBackupWizard">DATENRETTUNGS-ASSISTENT</system:String>
+    <system:String x:Key="WizardTitle">APEX ASYNCHRONER RECOVERY-ASSISTENT</system:String>
+    <system:String x:Key="WizSelectProfile">1. Benutzerprofil zum Sichern auswählen</system:String>
+    <system:String x:Key="WizSelectDest">2. Ziel-Laufwerk zum Sichern auswählen</system:String>
+    <system:String x:Key="WizSelectOptions">3. Wiederherstellungs-Optionen konfigurieren</system:String>
+    <system:String x:Key="WizOptCreds">Gespeicherte Windows-Anmeldeinformationen &amp; DPAPI sichern</system:String>
+    <system:String x:Key="WizOptRoot">Benutzerdefinierte C:\ Kök Klasörleri &amp; Loose-Dateien sichern</system:String>
+    <system:String x:Key="BtnStartRescue">RETTUNG STARTEN</system:String>
+    <system:String x:Key="BtnCancel">ABBRECHEN</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">REINSEKTOR-FESTPLATTENKLONER</system:String>
+    <system:String x:Key="TitleCloneDesc">Sektor-für-Sektor-Spiegelung für Bare-Metal-Restore und Migrationen.</system:String>
+    <system:String x:Key="BtnRefreshDrives">FESTPLATTEN AKTUALISIEREN</system:String>
+    <system:String x:Key="BtnStartCloning">KLONEN STARTEN</system:String>
+    <system:String x:Key="SelectSourceDisk">QUELLENLAUFWERK WÄHLEN (LESEN VON)</system:String>
+    <system:String x:Key="SelectTargetDisk">ZIELLAUFWERK WÄHLEN (SCHREIBEN AUF)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 ERWEITERTE PHYSIKALISCHE KLONINFORMATIONEN</system:String>
+    <system:String x:Key="CloningInfo1">• Bare-Metal-Klonen: Die Sektor-für-Sektor-Spiegelung kopiert alle Systemdateien, Partitionen, Layouts und Sicherheitsberechtigungen.</system:String>
+    <system:String x:Key="CloningInfo2">• WinPE-Optimiert: Führt direkte hardwarenahe Schreibvorgänge unter Verwendung von 4-MB-Doppelpufferblöcken durch.</system:String>
+    <system:String x:Key="CloningInfo3">• Ziel-Anforderung: Stellen Sie sicher, dass das Ziellaufwerk mindestens so groß wie das Quelllaufwerk ist!</system:String>
+    <system:String x:Key="CloneTelemetryTitle">ECHTZEIT-TELEMETRIEMONITOR</system:String>
+    <system:String x:Key="CloneSpeed">KLONGESCHWINDIGKEIT</system:String>
+    <system:String x:Key="CloneTimeRemaining">VERBLEIBENDE ZEIT</system:String>
+    <system:String x:Key="CloneSourceIndex">QUELLENINDEX</system:String>
+    <system:String x:Key="CloneTargetIndex">ZIELINDEX</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 KRITISCHE WARNUNG VOR DATENVERLUST</system:String>
+    <system:String x:Key="CloneWarningSubtitle">Das Sektor-für-Sektor-Klonen überschreibt alle vorhandenen Daten.</system:String>
+    <system:String x:Key="CloneWarningText">WARNUNG: Dieser Vorgang löscht alle Partitionen, Dateien und Betriebssysteme auf dem ausgewählten Ziellaufwerk unwiderruflich!</system:String>
+    <system:String x:Key="CloneWarningConfirmText">Geben Sie 'CLONE' ein, um die Klonung zu bestätigen:</system:String>
+    <system:String x:Key="BtnWipeClone">LÖSCHEN &amp; KLONEN</system:String>
+</ResourceDictionary>

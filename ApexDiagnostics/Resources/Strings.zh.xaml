@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">主控制面板</system:String>
+    <system:String x:Key="NavCpuTest">CPU压力与验证</system:String>
+    <system:String x:Key="NavRamTest">内存健康诊断</system:String>
+    <system:String x:Key="NavDiskScan">磁盘坏道扫描</system:String>
+    <system:String x:Key="NavSystemInfo">系统配置信息</system:String>
+    <system:String x:Key="NavExplorer">文件数据管理</system:String>
+    <system:String x:Key="NavClone">物理磁盘克隆</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">硬件系统概览</system:String>
+    <system:String x:Key="StatCpuLoad">CPU 实时负载</system:String>
+    <system:String x:Key="StatRamUsage">物理内存占用</system:String>
+    <system:String x:Key="StatDiskHealth">物理磁盘深度温度</system:String>
+    <system:String x:Key="SystemSummary">硬件诊断引擎遥测状态</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">CPU 压力测试与稳定性验证</system:String>
+    <system:String x:Key="LabelCpuStatus">引擎状态</system:String>
+    <system:String x:Key="LabelElapsedTime">已运行时间</system:String>
+    <system:String x:Key="LabelCpuPower">当前功耗</system:String>
+    <system:String x:Key="LabelInstructions">硬件指令集</system:String>
+    <system:String x:Key="BtnStartTest">开始压力测试</system:String>
+    <system:String x:Key="BtnStopTest">停止压力测试</system:String>
+    <system:String x:Key="CpuUsageHistory">CPU 实时负载历史 (%)</system:String>
+    <system:String x:Key="CpuTempHistory">CPU 核心温度历史 (°C)</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">物理内存毒性深度诊断引擎</system:String>
+    <system:String x:Key="LabelRamAllocated">已分配空间</system:String>
+    <system:String x:Key="LabelRamCoverage">诊断覆盖率</system:String>
+    <system:String x:Key="LabelMemoryToxicity">物理内存整体健康度</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">磁盘深度坏道物理扫描工具</system:String>
+    <system:String x:Key="SelectPhysicalDisk">选择物理硬盘</system:String>
+    <system:String x:Key="BtnStartScan">启动深度扫描</system:String>
+    <system:String x:Key="BtnStopScan">中止扫描任务</system:String>
+    <system:String x:Key="LabelBadSectors">损坏物理扇区</system:String>
+    <system:String x:Key="LabelScanSpeed">实时扫描速度</system:String>
+    
+    <!-- System Info -->
+    <system:String x:Key="TitleSystemInfo">极光硬件资产规格清单</system:String>
+    <system:String x:Key="ClickToCopy">单击参数值可快速复制到剪贴板</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">APEX 异步数据恢复向导</system:String>
+    <system:String x:Key="BtnBackupWizard">快捷数据挽救向导</system:String>
+    <system:String x:Key="WizardTitle">APEX 异步数据高速救灾向导</system:String>
+    <system:String x:Key="WizSelectProfile">1. 选择需要救灾的系统用户配置文件路径</system:String>
+    <system:String x:Key="WizSelectDest">2. 选择备份的目标驱动器或移动介质</system:String>
+    <system:String x:Key="WizSelectOptions">3. 配置救灾引擎自定义传输参数</system:String>
+    <system:String x:Key="WizOptCreds">同时备份 Windows 用户凭据管理器及离线 DPAPI 密钥</system:String>
+    <system:String x:Key="WizOptRoot">扫描并救灾 C: 盘根目录下的非系统自定义文件夹和散装文件</system:String>
+    <system:String x:Key="BtnStartRescue">启动数据救援</system:String>
+    <system:String x:Key="BtnCancel">取消返回</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">物理磁盘扇区级单向克隆与备份</system:String>
+    <system:String x:Key="TitleCloneDesc">物理层逐扇区底层精确镜像复制，适用于整机系统迁移或硬盘更换。</system:String>
+    <system:String x:Key="BtnRefreshDrives">刷新硬盘列表</system:String>
+    <system:String x:Key="BtnStartCloning">启动镜像克隆</system:String>
+    <system:String x:Key="SelectSourceDisk">选择源物理磁盘 (读取数据)</system:String>
+    <system:String x:Key="SelectTargetDisk">选择目标物理磁盘 (覆盖写入)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 底层物理克隆技术遥测指南</system:String>
+    <system:String x:Key="CloningInfo1">• 裸机克隆: 逐物理扇区镜像复制；完整包含所有系统文件、隐藏EFI分区、分区结构及底层安全权限。</system:String>
+    <system:String x:Key="CloningInfo2">• WinPE高度优化: 通过 4MB 双缓冲区直接绕过文件系统，对底层硬件地址进行高速物理流写入。</system:String>
+    <system:String x:Key="CloningInfo3">• 目标盘容量警告: 请务必确保目标物理磁盘的总可用空间大于或等于源磁盘以避免分区丢失！</system:String>
+    <system:String x:Key="CloneTelemetryTitle">克隆引擎实时数据遥测</system:String>
+    <system:String x:Key="CloneSpeed">实时克隆速度</system:String>
+    <system:String x:Key="CloneTimeRemaining">预计剩余时间</system:String>
+    <system:String x:Key="CloneSourceIndex">源磁盘序号</system:String>
+    <system:String x:Key="CloneTargetIndex">目标磁盘序号</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 破坏性底层覆盖写入关键警告</system:String>
+    <system:String x:Key="CloneWarningSubtitle">底层物理克隆将无条件覆盖写入目标磁盘上的所有扇区。</system:String>
+    <system:String x:Key="CloneWarningText">警告: 启动克隆将不可逆地彻底抹除目标物理磁盘上的所有现有分区、引导扇区、操作系统及用户数据！</system:String>
+    <system:String x:Key="CloneWarningConfirmText">请在下方输入框中手动键入 'CLONE' 以确认此项极高风险的操作:</system:String>
+    <system:String x:Key="BtnWipeClone">确认抹除并克隆</system:String>
+</ResourceDictionary>

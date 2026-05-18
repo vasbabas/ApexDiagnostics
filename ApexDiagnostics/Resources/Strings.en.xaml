@@ -1,0 +1,182 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">DASHBOARD</system:String>
+    <system:String x:Key="NavCpuTest">CPU STRESS &amp; VAL</system:String>
+    <system:String x:Key="NavRamTest">RAM DIAGNOSTICS</system:String>
+    <system:String x:Key="NavDiskScan">DISK SURFACE SCAN</system:String>
+    <system:String x:Key="NavSystemInfo">SYSTEM INFO</system:String>
+    <system:String x:Key="NavExplorer">FILE EXPLORER</system:String>
+    <system:String x:Key="NavClone">DISK CLONER</system:String>
+    <system:String x:Key="LabelLanguageSelector">🌐 LANGUAGE / DİL</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">SYSTEM OVERVIEW</system:String>
+    <system:String x:Key="StatCpuLoad">CPU REAL-TIME LOAD</system:String>
+    <system:String x:Key="StatRamUsage">RAM PHYSICAL USAGE</system:String>
+    <system:String x:Key="StatDiskHealth">DISK DEEP TEMPERATURE</system:String>
+    <system:String x:Key="SystemSummary">HARDWARE ENGINE TELEMETRY STATUS</system:String>
+    <system:String x:Key="LabelCpuTemp">CPU TEMPERATURE</system:String>
+    <system:String x:Key="LabelDownload">DOWNLOAD</system:String>
+    <system:String x:Key="LabelUpload">UPLOAD</system:String>
+    <system:String x:Key="LabelPeakThroughput">PEAK THROUGHPUT</system:String>
+    <system:String x:Key="LabelRamUsagePercent">RAM USAGE (%)</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">CPU STRESS &amp; VALIDATION</system:String>
+    <system:String x:Key="LabelCpuStatus">STATUS</system:String>
+    <system:String x:Key="LabelElapsedTime">ELAPSED</system:String>
+    <system:String x:Key="LabelCpuPower">POWER</system:String>
+    <system:String x:Key="LabelInstructions">INSTRUCTIONS</system:String>
+    <system:String x:Key="BtnStartTest">START TEST</system:String>
+    <system:String x:Key="BtnStopTest">STOP TEST</system:String>
+    <system:String x:Key="CpuUsageHistory">CPU USAGE HISTORY (%)</system:String>
+    <system:String x:Key="CpuTempHistory">CPU TEMP HISTORY (°C)</system:String>
+    <system:String x:Key="TitleTestControl">TEST CONTROL</system:String>
+    <system:String x:Key="LabelSafetyCeiling">SAFETY CEILING LIMIT</system:String>
+    <system:String x:Key="LabelHardwareStatus">HARDWARE STATUS</system:String>
+    <system:String x:Key="LabelLiveSensors">LIVE TELEMETRY SENSORS</system:String>
+    <system:String x:Key="LabelLogicalCores">LOGICAL CORES</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">MEMORY TOXICITY DIAGNOSTICS</system:String>
+    <system:String x:Key="LabelRamAllocated">ALLOCATED</system:String>
+    <system:String x:Key="LabelRamCoverage">COVERAGE</system:String>
+    <system:String x:Key="LabelMemoryToxicity">MEMORY TOXICITY STATUS</system:String>
+    <system:String x:Key="LabelPass">PASS</system:String>
+    <system:String x:Key="LabelErrors">ERRORS</system:String>
+    <system:String x:Key="LabelQuickScan">Quick Scan</system:String>
+    <system:String x:Key="LabelDeepValidation">Deep Validation</system:String>
+    <system:String x:Key="LabelCurrentTest">CURRENT TEST</system:String>
+    <system:String x:Key="LabelPhysicalMemoryMap">PHYSICAL MEMORY MAP</system:String>
+    <system:String x:Key="LabelNoErrors">NO ERRORS DETECTED</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">DISK DEEP SURFACE VERIFIER</system:String>
+    <system:String x:Key="SelectPhysicalDisk">SELECT PHYSICAL DISK</system:String>
+    <system:String x:Key="BtnStartScan">START SCAN</system:String>
+    <system:String x:Key="BtnStopScan">STOP SCAN</system:String>
+    <system:String x:Key="LabelBadSectors">BAD SECTORS</system:String>
+    <system:String x:Key="LabelScanSpeed">SCAN SPEED</system:String>
+    <system:String x:Key="TitleDiskScanDesc">High-precision sector verification and latency analysis</system:String>
+    <system:String x:Key="LabelLatency">LATENCY</system:String>
+    <system:String x:Key="LabelETA">ESTIMATED TIME</system:String>
+    <system:String x:Key="LabelLatencyDistribution">LATENCY DISTRIBUTION</system:String>
+    <system:String x:Key="LabelSafetyWatchdog">SAFETY WATCHDOG</system:String>
+    <system:String x:Key="LabelGoodSectors"> Good (&lt; 50ms)</system:String>
+    <system:String x:Key="LabelSlowSectors"> Slow (&lt; 150ms)</system:String>
+    <system:String x:Key="LabelDelayedSectors"> Delayed (&lt; 200ms)</system:String>
+    <system:String x:Key="LabelWeakSectors"> Weak (&lt; 1000ms)</system:String>
+    <system:String x:Key="LabelTimeoutSectors"> Timeout (&gt; 5000ms)</system:String>
+    <system:String x:Key="LabelBadErrorSectors"> Bad / Error</system:String>
+    <system:String x:Key="LabelTotalScanned">Total Scanned:</system:String>
+    
+    <!-- System Info & Hardware Specs -->
+    <system:String x:Key="TitleSystemInfo">GLOWING COMPONENT SPECS INVENTORY</system:String>
+    <system:String x:Key="ClickToCopy">Click value to copy to clipboard</system:String>
+    <system:String x:Key="SysCatCpu">PROCESSOR (CPU)</system:String>
+    <system:String x:Key="SysCatRam">MEMORY (RAM)</system:String>
+    <system:String x:Key="SysCatStorage">STORAGE (DISKS)</system:String>
+    <system:String x:Key="SysCatMotherboard">MOTHERBOARD &amp; BIOS</system:String>
+    <system:String x:Key="SysCatGpu">GRAPHICS (GPU)</system:String>
+    <system:String x:Key="SysPropModel">Model</system:String>
+    <system:String x:Key="SysPropCoresThreads">Cores / Threads</system:String>
+    <system:String x:Key="SysPropArchitecture">Architecture</system:String>
+    <system:String x:Key="SysPropSocket">Socket</system:String>
+    <system:String x:Key="SysPropL2Cache">L2 Cache</system:String>
+    <system:String x:Key="SysPropL3Cache">L3 Cache</system:String>
+    <system:String x:Key="SysPropManufacturer">Manufacturer</system:String>
+    <system:String x:Key="SysPropMaxClockSpeed">Max Clock Speed</system:String>
+    <system:String x:Key="SysPropVersion">Version</system:String>
+    <system:String x:Key="SysPropTotalPhysical">Total Physical</system:String>
+    <system:String x:Key="SysPropSlot">Slot</system:String>
+    <system:String x:Key="SysPropCapacity">Capacity</system:String>
+    <system:String x:Key="SysPropSpeed">Speed</system:String>
+    <system:String x:Key="SysPropPartNumber">Part Number</system:String>
+    <system:String x:Key="SysPropFormFactor">Form Factor</system:String>
+    <system:String x:Key="SysPropTotalSize">Total Size</system:String>
+    <system:String x:Key="SysPropHealthStatus">Health Status</system:String>
+    <system:String x:Key="SysPropSerial">Serial</system:String>
+    <system:String x:Key="SysPropDiskIndex">Disk Index</system:String>
+    <system:String x:Key="SysPropDetailedType">Detailed Type</system:String>
+    <system:String x:Key="SysPropProduct">Product</system:String>
+    <system:String x:Key="SysPropReleaseDate">Release Date</system:String>
+    <system:String x:Key="SysPropDriverVersion">Driver Version</system:String>
+    <system:String x:Key="SysPropAdapterRAM">Adapter RAM</system:String>
+    <system:String x:Key="SysStickLabel">STICK</system:String>
+    <system:String x:Key="SysDiskLabel">DISK</system:String>
+    <system:String x:Key="DiskTypeNvmeGen4">NVMe SSD (Ultra-Speed PCIe Gen 4.0)</system:String>
+    <system:String x:Key="DiskTypeNvmeGen5">NVMe SSD (Extreme PCIe Gen 5.0)</system:String>
+    <system:String x:Key="DiskTypeNvmeGen3">NVMe SSD (High-Speed PCIe Gen 3.0)</system:String>
+    <system:String x:Key="DiskTypeNvmeGeneric">NVMe SSD (PCIe Solid State)</system:String>
+    <system:String x:Key="LabelSolidState">Solid State Drive</system:String>
+    <system:String x:Key="DiskTypePortableSsd">Portable SSD (USB External)</system:String>
+    <system:String x:Key="DiskTypeSataSsd">SATA SSD (High-Speed Solid State)</system:String>
+    <system:String x:Key="DiskTypeUsbDisk">USB External Disk Drive</system:String>
+    <system:String x:Key="DiskTypeSataHdd">SATA Hard Drive (Mechanical HDD)</system:String>
+    
+    <!-- File Explorer -->
+    <system:String x:Key="LabelFileName">Name</system:String>
+    <system:String x:Key="LabelFileSize">Size</system:String>
+    <system:String x:Key="LabelFileModified">Date Modified</system:String>
+    <system:String x:Key="LabelAvailableDrives">AVAILABLE DRIVES</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">APEX DATA RECOVERY WIZARD</system:String>
+    <system:String x:Key="BtnBackupWizard">QUICK DATA RESCUE WIZARD</system:String>
+    <system:String x:Key="WizardTitle">APEX ASYNCHRONOUS DATA RESCUE WIZARD</system:String>
+    <system:String x:Key="WizSelectProfile">1. Select User Profile folder to rescue</system:String>
+    <system:String x:Key="WizSelectDest">2. Browse and select backup destination drive</system:String>
+    <system:String x:Key="WizSelectOptions">3. Configure custom recovery engine options</system:String>
+    <system:String x:Key="WizOptCreds">Backup saved Windows Credentials &amp; offline DPAPI Keys</system:String>
+    <system:String x:Key="WizOptRoot">Scan &amp; Rescue Custom Root Folders / Loose Files on C: drive</system:String>
+    <system:String x:Key="BtnStartRescue">START RESCUE</system:String>
+    <system:String x:Key="BtnCancel">CANCEL</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">LOW-LEVEL DISK CLONER &amp; DUPLICATOR</system:String>
+    <system:String x:Key="TitleCloneDesc">Sector-by-sector replication for bare-metal restore and drive migrations.</system:String>
+    <system:String x:Key="BtnRefreshDrives">REFRESH DRIVES</system:String>
+    <system:String x:Key="BtnStartCloning">START CLONING</system:String>
+    <system:String x:Key="SelectSourceDisk">SELECT SOURCE PHYSICAL DRIVE (READ FROM)</system:String>
+    <system:String x:Key="SelectTargetDisk">SELECT TARGET PHYSICAL DRIVE (WRITE OVER)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 ADVANCED PHYSICAL CLONING INFORMATION</system:String>
+    <system:String x:Key="CloningInfo1">• Bare-Metal Cloning: Sector-by-sector mirroring copies all system files, hidden system partitions, partition layouts, Windows Credentials vault, and security permissions.</system:String>
+    <system:String x:Key="CloningInfo2">• WinPE Optimized: Performs high-performance raw handles direct memory write operations using multi-threaded 4MB chunk double-buffered memory blocks.</system:String>
+    <system:String x:Key="CloningInfo3">• Destination Target: Make sure the target physical disk size is equal to or larger than the source drive to prevent partition clipping!</system:String>
+    <system:String x:Key="CloneTelemetryTitle">REAL-TIME TELEMETRY MONITOR</system:String>
+    <system:String x:Key="CloneSpeed">CLONING SPEED</system:String>
+    <system:String x:Key="CloneTimeRemaining">TIME REMAINING</system:String>
+    <system:String x:Key="CloneSourceIndex">SOURCE INDEX</system:String>
+    <system:String x:Key="CloneTargetIndex">TARGET INDEX</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 CRITICAL DESTRUCTIVE WARNING</system:String>
+    <system:String x:Key="CloneWarningSubtitle">Low-level physical sector copying will overwrite all existing data.</system:String>
+    <system:String x:Key="CloneWarningText">WARNING: Starting this operation will completely and irreversibly wipe all partitions, files, and operating systems currently residing on the destination target physical drive!</system:String>
+    <system:String x:Key="CloneWarningConfirmText">Type 'CLONE' in the field below to confirm your intent:</system:String>
+    <system:String x:Key="BtnWipeClone">WIPE &amp; CLONE</system:String>
+    
+    <!-- Dynamic States & Thermal Status -->
+    <system:String x:Key="ThermalThrottlingActive">THERMAL THROTTLING DETECTED (HOT!)</system:String>
+    <system:String x:Key="ThermalStateNominal">THERMAL STATE NOMINAL (COOL)</system:String>
+    <system:String x:Key="StatusIdle">IDLE</system:String>
+    <system:String x:Key="StatusStressTesting">STRESS TESTING ACTIVE</system:String>
+    <system:String x:Key="StatusTestingRam">TESTING RAM IN PROGRESS</system:String>
+    <system:String x:Key="StatusScanning">SURFACE SCANNING ACTIVE</system:String>
+    <system:String x:Key="StatusCompleted">COMPLETED SUCCESS</system:String>
+    <system:String x:Key="StatusPaused">PAUSED</system:String>
+
+    <!-- Cloner & MainWindow Overlays -->
+    <system:String x:Key="CloneSourceLabel">🟢 SOURCE (SAFE READ-ONLY):</system:String>
+    <system:String x:Key="CloneTargetWarningLabel">🚨🚨🚨 TARGET TO BE ERASED (DANGER - WIPE!) 🚨🚨🚨</system:String>
+    <system:String x:Key="CloneWipeNote">(ALL DATA ON THIS TARGET DRIVE WILL BE IRREVERSIBLY ERASED!)</system:String>
+    <system:String x:Key="CloneEngineActive">Asynchronous Raw IO Sector Copy Engine Active</system:String>
+    <system:String x:Key="CloneStatusSelect">Select Source and Target drives to begin cloning.</system:String>
+    <system:String x:Key="CloneStatusCalculating">Calculating...</system:String>
+    <system:String x:Key="CloneStatusInitializing">Initializing low-level sector cloning session...</system:String>
+    <system:String x:Key="CloneStatusCompleted">Drive cloning completed successfully!</system:String>
+    <system:String x:Key="LabelCloned">Cloned</system:String>
+    <system:String x:Key="LabelSafetyAlert">⚠ SAFETY ALERT</system:String>
+    <system:String x:Key="BtnAcknowledge">Acknowledge</system:String>
+</ResourceDictionary>

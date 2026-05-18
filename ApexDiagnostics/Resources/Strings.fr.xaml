@@ -1,0 +1,83 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+    
+    <!-- Navigation Sidebar -->
+    <system:String x:Key="NavDashboard">TABLEAU DE BORD</system:String>
+    <system:String x:Key="NavCpuTest">STRESS CPU &amp; VAL</system:String>
+    <system:String x:Key="NavRamTest">DIAGNOSTIC RAM</system:String>
+    <system:String x:Key="NavDiskScan">ANALYSE SURFACE DISQUE</system:String>
+    <system:String x:Key="NavSystemInfo">INFO SYSTÈME</system:String>
+    <system:String x:Key="NavExplorer">GESTIONNAIRE FICHIERS</system:String>
+    <system:String x:Key="NavClone">CLONEUR DISQUE</system:String>
+    
+    <!-- Dashboard Titles & Stats -->
+    <system:String x:Key="TitleDashboard">APERÇU SYSTÈME</system:String>
+    <system:String x:Key="StatCpuLoad">CHARGE CPU EN TEMPS RÉEL</system:String>
+    <system:String x:Key="StatRamUsage">UTILISATION RAM PHYSIQUE</system:String>
+    <system:String x:Key="StatDiskHealth">TEMPÉRATURE DEEP DU DISQUE</system:String>
+    <system:String x:Key="SystemSummary">ÉTAT TÉLÉMÉTRIE MOTEUR MATÉRIEL</system:String>
+    
+    <!-- CPU Torture Test -->
+    <system:String x:Key="TitleCpuTest">STRESS &amp; VALIDATION CPU</system:String>
+    <system:String x:Key="LabelCpuStatus">STATUT</system:String>
+    <system:String x:Key="LabelElapsedTime">ÉCOULÉ</system:String>
+    <system:String x:Key="LabelCpuPower">PUISSANCE</system:String>
+    <system:String x:Key="LabelInstructions">INSTRUCTIONS</system:String>
+    <system:String x:Key="BtnStartTest">LANCER LE TEST</system:String>
+    <system:String x:Key="BtnStopTest">ARRÊTER LE TEST</system:String>
+    <system:String x:Key="CpuUsageHistory">HISTORIQUE CHARGE CPU (%)</system:String>
+    <system:String x:Key="CpuTempHistory">HISTORIQUE TEMP CPU (°C)</system:String>
+    
+    <!-- RAM Diagnostics -->
+    <system:String x:Key="TitleRamTest">DIAGNOSTIC TOXICITÉ DE MÉMOIRE</system:String>
+    <system:String x:Key="LabelRamAllocated">ALLOUÉE</system:String>
+    <system:String x:Key="LabelRamCoverage">COUVERTURE</system:String>
+    <system:String x:Key="LabelMemoryToxicity">ÉTAT DE TOXICITÉ DE MÉMOIRE</system:String>
+    
+    <!-- Disk Surface Scan -->
+    <system:String x:Key="TitleDiskScan">VÉRIFICATEUR SURFACE DISQUE PRO</system:String>
+    <system:String x:Key="SelectPhysicalDisk">SÉLECTIONNER DISQUE PHYSIQUE</system:String>
+    <system:String x:Key="BtnStartScan">LANCER L'ANALYSE</system:String>
+    <system:String x:Key="BtnStopScan">ARRÊTER L'ANALYSE</system:String>
+    <system:String x:Key="LabelBadSectors">SECTEURS DÉFECTUEUX</system:String>
+    <system:String x:Key="LabelScanSpeed">VITESSE D'ANALYSE</system:String>
+    
+    <!-- System Info -->
+    <system:String x:Key="TitleSystemInfo">INVENTAIRE DU MATÉRIEL LUMINESCENT</system:String>
+    <system:String x:Key="ClickToCopy">Cliquez sur une valeur pour la copier</system:String>
+    
+    <!-- Data Recovery & Backup Wizard -->
+    <system:String x:Key="TitleExplorer">ASSISTANT DE RÉCUPÉRATION APEX</system:String>
+    <system:String x:Key="BtnBackupWizard">ASSISTANT RÉCUPÉRATION RAPIDE</system:String>
+    <system:String x:Key="WizardTitle">ASSISTANT DE RÉCUPÉRATION ASYNCHRONE APEX</system:String>
+    <system:String x:Key="WizSelectProfile">1. Sélectionner le profil utilisateur à récupérer</system:String>
+    <system:String x:Key="WizSelectDest">2. Sélectionner le disque cible de sauvegarde</system:String>
+    <system:String x:Key="WizSelectOptions">3. Configurer les options du moteur de copie</system:String>
+    <system:String x:Key="WizOptCreds">Sauvegarder les identifiants Windows &amp; clés DPAPI</system:String>
+    <system:String x:Key="WizOptRoot">Scanner &amp; Sauvegarder les dossiers personnalisés de C:\</system:String>
+    <system:String x:Key="BtnStartRescue">DÉMARRER LA RÉCUPÉRATION</system:String>
+    <system:String x:Key="BtnCancel">ANNULER</system:String>
+    
+    <!-- Disk Cloner -->
+    <system:String x:Key="TitleClone">DUPLICATEUR &amp; CLONEUR DE DISQUES SECTORIELS</system:String>
+    <system:String x:Key="TitleCloneDesc">Réplication secteur par secteur pour restauration bare-metal et migrations.</system:String>
+    <system:String x:Key="BtnRefreshDrives">RAFRAÎCHIR LES DISQUES</system:String>
+    <system:String x:Key="BtnStartCloning">LANCER LE CLONAGE</system:String>
+    <system:String x:Key="SelectSourceDisk">CHOISIR DISQUE SOURCE (LIRE DEPUIS)</system:String>
+    <system:String x:Key="SelectTargetDisk">CHOISIR DISQUE CIBLE (ÉCRIRE SUR)</system:String>
+    <system:String x:Key="CloningInfoTitle">💠 TÉLÉMÉTRIE DE CLONAGE PHYSIQUE AVANCÉE</system:String>
+    <system:String x:Key="CloningInfo1">• Clonage Bare-Metal: La copie miroir secteur par secteur préserve tous les fichiers, partitions EFI cachées, tables de partitions et droits d'accès.</system:String>
+    <system:String x:Key="CloningInfo2">• Optimisé WinPE: Effectue des écritures physiques directes à haute vitesse en utilisant des double-buffers de 4 Mo.</system:String>
+    <system:String x:Key="CloningInfo3">• Capacité requise: Assurez-vous que le disque cible est au moins aussi grand que le disque source!</system:String>
+    <system:String x:Key="CloneTelemetryTitle">MONITEUR TÉLÉMÉTRIQUE EN TEMPS RÉEL</system:String>
+    <system:String x:Key="CloneSpeed">VITESSE DE CLONAGE</system:String>
+    <system:String x:Key="CloneTimeRemaining">TEMPS RESTANT</system:String>
+    <system:String x:Key="CloneSourceIndex">INDEX SOURCE</system:String>
+    <system:String x:Key="CloneTargetIndex">INDEX CIBLE</system:String>
+    <system:String x:Key="CloneWarningTitle">🚨 ATTENTION CRITIQUE DE PERTE DE DONNÉES</system:String>
+    <system:String x:Key="CloneWarningSubtitle">Le clonage sectoriel bas niveau écrasera toutes les données existantes.</system:String>
+    <system:String x:Key="CloneWarningText">ATTENTION: Cette action écrasera et effacera irréversiblement toutes les partitions, systèmes et fichiers présents sur le disque cible sélectionné!</system:String>
+    <system:String x:Key="CloneWarningConfirmText">Saisissez 'CLONE' dans le champ ci-dessous pour confirmer:</system:String>
+    <system:String x:Key="BtnWipeClone">EFFACER &amp; CLONER</system:String>
+</ResourceDictionary>

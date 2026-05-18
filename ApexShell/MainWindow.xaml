@@ -1,0 +1,244 @@
+<Window x:Class="ApexShell.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Apex WinPE Desktop Environment" 
+        WindowState="Maximized" WindowStyle="None" Topmost="False"
+        Background="#02050A" Foreground="#E6EDF3" FontFamily="Segoe UI, Segoe UI Variable, Arial">
+
+    <Window.Resources>
+        <!-- Desktop Shortcut Style -->
+        <Style x:Key="DesktopIconStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="IconBorder" Background="Transparent" BorderThickness="1.5" BorderBrush="Transparent" CornerRadius="6" Width="85" Height="90" Margin="10">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Grid Width="48" Height="48" Margin="0,0,0,6">
+                                    <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Grid>
+                                <TextBlock Text="{TemplateBinding Tag}" Foreground="White" FontSize="11" TextAlignment="Center" FontWeight="SemiBold" TextTrimming="CharacterEllipsis">
+                                    <TextBlock.Effect>
+                                        <DropShadowEffect BlurRadius="4" Color="Black" ShadowDepth="1" Opacity="0.9"/>
+                                    </TextBlock.Effect>
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="IconBorder" Property="Background" Value="#1AFFFFFF"/>
+                                <Setter TargetName="IconBorder" Property="BorderBrush" Value="#2BFFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="IconBorder" Value="#33FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Taskbar Icon Style -->
+        <Style x:Key="TaskbarIconStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="IconBorder" Background="Transparent" CornerRadius="4" Width="40" Height="40" Margin="4,0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="IconBorder" Property="Background" Value="#15FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="IconBorder" Value="#25FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Start Menu App Style -->
+        <Style x:Key="StartMenuIconStyle" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="AppBorder" Background="Transparent" CornerRadius="6" Padding="8,10">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="{TemplateBinding Content}" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                                <TextBlock Text="{TemplateBinding Tag}" Foreground="White" FontSize="11" HorizontalAlignment="Center" TextAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="AppBorder" Property="Background" Value="#10FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Windows 11 Fluid Gradient Wallpaper -->
+        <Grid.Background>
+            <RadialGradientBrush Center="0.5,0.4" RadiusX="0.9" RadiusY="0.9" GradientOrigin="0.5,0.4">
+                <GradientStop Color="#1A0D3C" Offset="0"/>
+                <GradientStop Color="#09142E" Offset="0.4"/>
+                <GradientStop Color="#020611" Offset="1"/>
+            </RadialGradientBrush>
+        </Grid.Background>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="48"/>
+        </Grid.RowDefinitions>
+
+        <!-- Desktop Area -->
+        <Grid Grid.Row="0" x:Name="DesktopGrid" MouseLeftButtonDown="DesktopGrid_MouseLeftButtonDown">
+            
+            <!-- Tech Backdrop Text (Very Subtle) -->
+            <TextBlock Text="APEX DESKTOP SHELL" FontSize="56" FontWeight="Black" Foreground="#04FFFFFF" 
+                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,50"/>
+
+            <!-- Desktop Shortcuts Grid -->
+            <WrapPanel Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20,0,0">
+                <!-- This PC (Launches Explorer++) -->
+                <Button Style="{StaticResource DesktopIconStyle}" Tag="This PC" Click="LaunchExplorer_Click">
+                    <TextBlock Text="💻" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+
+                <!-- Apex Diagnostics -->
+                <Button Style="{StaticResource DesktopIconStyle}" Tag="Diagnostics" Click="LaunchDiagnostics_Click">
+                    <TextBlock Text="🛡️" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+
+                <!-- Command Prompt -->
+                <Button Style="{StaticResource DesktopIconStyle}" Tag="Command Prompt" Click="LaunchCmd_Click">
+                    <TextBlock Text="📟" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+
+                <!-- Notepad -->
+                <Button Style="{StaticResource DesktopIconStyle}" Tag="Notepad" Click="LaunchNotepad_Click">
+                    <TextBlock Text="📝" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+            </WrapPanel>
+
+            <!-- Centered Windows 11-style Start Menu Popup -->
+            <Border x:Name="StartMenuPopup" Width="500" Height="420" VerticalAlignment="Bottom" HorizontalAlignment="Center" 
+                    Margin="0,0,0,10" CornerRadius="12" BorderThickness="1.5" BorderBrush="#20FFFFFF" Visibility="Collapsed">
+                <Border.Background>
+                    <SolidColorBrush Color="#D00B0F19"/>
+                </Border.Background>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="20" Color="#000000" Opacity="0.6"/>
+                </Border.Effect>
+
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Search Bar Mockup -->
+                    <Border Grid.Row="0" Background="#15FFFFFF" BorderThickness="1" BorderBrush="#15FFFFFF" CornerRadius="6" Height="36" Padding="12,0">
+                        <Grid>
+                            <TextBlock Text="Search for apps, files, and settings..." Foreground="#80FFFFFF" VerticalAlignment="Center" FontSize="12"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Pinned Apps Grid -->
+                    <Grid Grid.Row="1" Margin="0,20,0,0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Text="Pinned Tools" FontSize="11" FontWeight="Bold" Foreground="#A0FFFFFF" Margin="5,0,0,10"/>
+                        
+                        <UniformGrid Grid.Row="1" Columns="4" Rows="2" VerticalAlignment="Top">
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="🛡️" Tag="Apex Suite" Click="LaunchDiagnostics_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="📁" Tag="File Explorer" Click="LaunchExplorer_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="📟" Tag="Cmd" Click="LaunchCmd_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="📝" Tag="Notepad" Click="LaunchNotepad_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="⚙️" Tag="Device Mgr" Click="LaunchDeviceManager_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="🔧" Tag="Registry Edit" Click="LaunchRegedit_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="💾" Tag="Disk Mgmt" Click="LaunchDiskMgmt_Click"/>
+                            <Button Style="{StaticResource StartMenuIconStyle}" Content="🌐" Tag="Network Set" Click="LaunchNetworkSet_Click"/>
+                        </UniformGrid>
+                    </Grid>
+
+                    <!-- User and Power Controls strip -->
+                    <Border Grid.Row="2" Background="#0AFFFFFF" CornerRadius="6" Height="50" Margin="-20,0,-20,-20" Padding="20,0">
+                        <Grid>
+                            <!-- User name -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                <Border Width="28" Height="28" CornerRadius="14" Background="#58A6FF" VerticalAlignment="Center">
+                                    <TextBlock Text="A" Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+                                </Border>
+                                <TextBlock Text="Administrator" Foreground="White" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="12" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <!-- Shutdown and Reboot controls -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Content="Shutdown" Click="Shutdown_Click" Height="30" Width="80" Margin="0,0,8,0" Background="Transparent" Foreground="#F85149" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand"/>
+                                <Button Content="Reboot" Click="Reboot_Click" Height="30" Width="80" Background="#F85149" Foreground="Black" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Windows 11 Centered Taskbar -->
+        <Border Grid.Row="1" BorderBrush="#1CFFFFFF" BorderThickness="0,1,0,0" x:Name="Taskbar">
+            <Border.Background>
+                <SolidColorBrush Color="#E0070B13"/>
+            </Border.Background>
+            <Grid Margin="15,0">
+                
+                <!-- Left Corner: Quick status indicator -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                    <TextBlock Text="🚀 WinPE Rescue Mode" FontSize="11" Foreground="#80FFFFFF" FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <!-- Center Section: Windows 11 taskbar icons -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <!-- Start Menu Button -->
+                    <Button Style="{StaticResource TaskbarIconStyle}" Click="StartButton_Click">
+                        <TextBlock Text="💠" FontSize="22" Foreground="#58A6FF" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+                    
+                    <!-- File Explorer (Explorer++) -->
+                    <Button Style="{StaticResource TaskbarIconStyle}" Click="LaunchExplorer_Click">
+                        <TextBlock Text="📁" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Apex Diagnostics -->
+                    <Button Style="{StaticResource TaskbarIconStyle}" Click="LaunchDiagnostics_Click">
+                        <TextBlock Text="🛡️" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+
+                    <!-- Command Prompt -->
+                    <Button Style="{StaticResource TaskbarIconStyle}" Click="LaunchCmd_Click">
+                        <TextBlock Text="📟" FontSize="22" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Right Corner: System clock, tray controls -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <!-- Mock System Tray Icons -->
+                    <TextBlock Text="🔊" FontSize="12" Foreground="#80FFFFFF" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="💻" FontSize="12" Foreground="#80FFFFFF" Margin="0,0,15,0" VerticalAlignment="Center"/>
+                    
+                    <Separator Width="1" Height="16" Background="#20FFFFFF" Margin="0,0,15,0"/>
+                    
+                    <!-- Live Clock -->
+                    <TextBlock x:Name="ClockText" Text="12:00 PM" FontSize="12" FontWeight="SemiBold" Foreground="White" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
