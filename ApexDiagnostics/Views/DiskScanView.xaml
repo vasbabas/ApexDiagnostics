@@ -71,10 +71,10 @@
                                                         </Grid>
                                                         <TextBlock Text="{Binding DriveLetters}" FontSize="11" Opacity="0.8" Margin="0,2,0,0" TextWrapping="Wrap"/>
                                                         <TextBlock FontSize="10.5" Opacity="0.6" Margin="0,4,0,0" TextWrapping="Wrap">
-                                                            <Run Text="{Binding Capacity}"/> <Run Text="GB │ "/> <Run Text="{Binding Model}"/>
+                                                            <Run Text="{Binding Capacity, Mode=OneWay}"/> <Run Text="GB │ "/> <Run Text="{Binding Model, Mode=OneWay}"/>
                                                         </TextBlock>
                                                         <TextBlock FontSize="9.5" Opacity="0.5" Margin="0,2,0,0" TextWrapping="Wrap">
-                                                            <Run Text="SMART: "/><Run Text="{Binding HealthText}" FontWeight="SemiBold" Foreground="{Binding StatusColor}"/><Run Text=" │ "/><Run Text="{Binding PowerOnHoursText}"/>
+                                                            <Run Text="SMART: "/><Run Text="{Binding HealthText, Mode=OneWay}" FontWeight="SemiBold" Foreground="{Binding StatusColor}"/><Run Text=" │ "/><Run Text="{Binding PowerOnHoursText, Mode=OneWay}"/>
                                                         </TextBlock>
                                                     </StackPanel>
                                                 </Grid>
