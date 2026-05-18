@@ -102,7 +102,7 @@ graph TB
 
     subgraph OS_Kernel_Layer [Windows & WinPE Core]
         WMI[WMI CIM Query Pipeline] --> Telemetry
-        RawIO[Raw Win32 Handles kernel32.dll] --> PhysDrive[\\\\.\\PhysicalDrive]
+        RawIO[Raw Win32 Handles kernel32.dll] --> PhysDrive["\\.\PhysicalDrive"]
     end
 
     WPF <-->|Data Bindings| VM
