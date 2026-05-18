@@ -68,6 +68,20 @@ namespace ApexDiagnostics.ViewModels
             set => SetProperty(ref _isCloning, value);
         }
 
+        private bool _isClonePaused;
+        public bool IsClonePaused
+        {
+            get => _isClonePaused;
+            set => SetProperty(ref _isClonePaused, value);
+        }
+
+        private bool _isCloneCancelled;
+        public bool IsCloneCancelled
+        {
+            get => _isCloneCancelled;
+            set => SetProperty(ref _isCloneCancelled, value);
+        }
+
         private double _progress;
         public double Progress
         {
@@ -125,6 +139,8 @@ namespace ApexDiagnostics.ViewModels
         public ICommand ShowWarningCommand { get; }
         public ICommand CancelWarningCommand { get; }
         public ICommand StartCloneCommand { get; }
+        public ICommand PauseCloneCommand { get; }
+        public ICommand StopCloneCommand { get; }
 
         public CloneViewModel(TelemetryManager telemetry)
         {
@@ -134,6 +150,8 @@ namespace ApexDiagnostics.ViewModels
             ShowWarningCommand = new RelayCommand(ExecuteShowWarning, CanShowWarning);
             CancelWarningCommand = new RelayCommand(() => IsWarningVisible = false, () => !IsCloning);
             StartCloneCommand = new RelayCommand(ExecuteStartClone, CanStartClone);
+            PauseCloneCommand = new RelayCommand(ExecutePauseClone, () => IsCloning);
+            StopCloneCommand = new RelayCommand(ExecuteStopClone, () => IsCloning);
 
             Status = GetTranslation("CloneStatusSelect", "Select Source and Target drives to begin cloning.");
 
@@ -193,6 +211,8 @@ namespace ApexDiagnostics.ViewModels
         {
             IsWarningVisible = false;
             IsCloning = true;
+            IsClonePaused = false;
+            IsCloneCancelled = false;
             Progress = 0;
             SpeedMBs = 0;
             TimeRemaining = GetTranslation("CloneStatusCalculating", "Calculating...");
@@ -238,6 +258,13 @@ namespace ApexDiagnostics.ViewModels
 
                     while (bytesCloned < totalBytes)
                     {
+                        if (IsCloneCancelled) break;
+                        while (IsClonePaused && !IsCloneCancelled)
+                        {
+                            System.Threading.Thread.Sleep(100);
+                        }
+                        if (IsCloneCancelled) break;
+
                         int bytesToRead = (int)Math.Min(bufferSize, totalBytes - bytesCloned);
                         int bytesRead = fsSource.Read(buffer, 0, bytesToRead);
                         if (bytesRead <= 0) break;
@@ -277,12 +304,20 @@ namespace ApexDiagnostics.ViewModels
 
                     App.Current.Dispatcher.Invoke(() =>
                     {
-                        Progress = 100;
-                        SpeedMBs = 0;
-                        TimeRemaining = "0s";
-                        Status = GetTranslation("CloneStatusCompleted", "Drive cloning completed successfully!");
                         IsCloning = false;
-                        MessageBox.Show($"Physical Drive #{srcDisk.Index} has been successfully cloned to Drive #{dstDisk.Index}!\nTotal Time: {TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds):hh\\:mm\\:ss}", "Cloning Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        Progress = IsCloneCancelled ? Progress : 100;
+                        SpeedMBs = 0;
+                        TimeRemaining = IsCloneCancelled ? "Aborted" : "0s";
+                        if (IsCloneCancelled)
+                        {
+                            Status = "Cloning session aborted by user.";
+                            MessageBox.Show("Disk cloning has been aborted. The target disk contains incomplete partition data.", "Cloning Aborted", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                        else
+                        {
+                            Status = GetTranslation("CloneStatusCompleted", "Drive cloning completed successfully!");
+                            MessageBox.Show($"Physical Drive #{srcDisk.Index} has been successfully cloned to Drive #{dstDisk.Index}!\nTotal Time: {TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds):hh\\:mm\\:ss}", "Cloning Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     });
                 }
                 catch (Exception ex)
@@ -301,6 +336,21 @@ namespace ApexDiagnostics.ViewModels
                     hDest?.Dispose();
                 }
             });
+        }
+
+        private void ExecutePauseClone()
+        {
+            IsClonePaused = !IsClonePaused;
+            Status = IsClonePaused ? "Cloning session PAUSED..." : "Resuming cloning session...";
+        }
+
+        private void ExecuteStopClone()
+        {
+            var res = MessageBox.Show("Are you sure you want to abort the raw sector cloning process? This may leave the destination disk in an incomplete, corrupted state.", "Abort Disk Cloning", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (res == MessageBoxResult.Yes)
+            {
+                IsCloneCancelled = true;
+            }
         }
 
         // Native imports for raw physical disk access

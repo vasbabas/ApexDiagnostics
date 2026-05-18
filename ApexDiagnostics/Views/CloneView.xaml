@@ -19,8 +19,64 @@
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Content="{DynamicResource BtnRefreshDrives}" Style="{StaticResource GhostButton}" Command="{Binding RefreshDisksCommand}" Width="Auto" MinWidth="130" Height="32" Margin="0,0,10,0" Padding="15,0"/>
-                <Button Content="{DynamicResource BtnStartCloning}" Style="{StaticResource GreenButton}" Command="{Binding ShowWarningCommand}" Width="Auto" MinWidth="140" Height="32" Padding="15,0"/>
+                <!-- Refresh Drives Button (Hidden when cloning) -->
+                <Button Command="{Binding RefreshDisksCommand}" Width="Auto" MinWidth="130" Height="32" Margin="0,0,10,0" Padding="15,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                            <Setter Property="Content" Value="{DynamicResource BtnRefreshDrives}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCloning}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <!-- Start Cloning Button (Hidden when cloning) -->
+                <Button Command="{Binding ShowWarningCommand}" Width="Auto" MinWidth="140" Height="32" Padding="15,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource GreenButton}">
+                            <Setter Property="Content" Value="{DynamicResource BtnStartCloning}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCloning}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <!-- Pause Cloning Button (Only visible when cloning) -->
+                <Button Command="{Binding PauseCloneCommand}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource AccentButton}">
+                            <Setter Property="Content" Value="PAUSE"/>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCloning}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsClonePaused}" Value="True">
+                                    <Setter Property="Content" Value="RESUME"/>
+                                    <Setter Property="Background" Value="#FF9F1C"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+                <!-- Stop Cloning Button (Only visible when cloning) -->
+                <Button Command="{Binding StopCloneCommand}" Width="Auto" MinWidth="100" Height="32" Padding="15,0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource DangerButton}">
+                            <Setter Property="Content" Value="STOP"/>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCloning}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
             </StackPanel>
         </Grid>
 

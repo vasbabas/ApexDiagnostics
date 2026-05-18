@@ -273,8 +273,64 @@
 
                         <!-- Actions -->
                         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Content="{DynamicResource BtnCancel}" Command="{Binding CancelBackupWizardCommand}" Style="{StaticResource GhostButton}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2"/>
-                            <Button Content="{DynamicResource BtnStartRescue}" Command="{Binding StartWizardBackupCommand}" Style="{StaticResource GreenButton}" Width="Auto" MinWidth="130" Height="32" Padding="15,2"/>
+                            <!-- Cancel Button (Hidden when backing up) -->
+                            <Button Command="{Binding CancelBackupWizardCommand}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                        <Setter Property="Content" Value="{DynamicResource BtnCancel}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <!-- Start Rescue Button (Hidden when backing up) -->
+                            <Button Command="{Binding StartWizardBackupCommand}" Width="Auto" MinWidth="130" Height="32" Padding="15,2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource GreenButton}">
+                                        <Setter Property="Content" Value="{DynamicResource BtnStartRescue}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <!-- Pause Backup Button (Only visible when backing up) -->
+                            <Button Command="{Binding PauseBackupCommand}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource AccentButton}">
+                                        <Setter Property="Content" Value="PAUSE"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsBackupPaused}" Value="True">
+                                                <Setter Property="Content" Value="RESUME"/>
+                                                <Setter Property="Background" Value="#FF9F1C"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            <!-- Stop Backup Button (Only visible when backing up) -->
+                            <Button Command="{Binding StopBackupCommand}" Width="Auto" MinWidth="100" Height="32" Padding="15,2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource DangerButton}">
+                                        <Setter Property="Content" Value="STOP"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
                         </StackPanel>
                     </Grid>
                 </Grid>

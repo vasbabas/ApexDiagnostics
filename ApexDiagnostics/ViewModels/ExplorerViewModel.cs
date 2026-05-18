@@ -68,6 +68,20 @@ namespace ApexDiagnostics.ViewModels
             set => SetProperty(ref _isBackingUp, value);
         }
 
+        private bool _isBackupPaused;
+        public bool IsBackupPaused
+        {
+            get => _isBackupPaused;
+            set => SetProperty(ref _isBackupPaused, value);
+        }
+
+        private bool _isBackupCancelled;
+        public bool IsBackupCancelled
+        {
+            get => _isBackupCancelled;
+            set => SetProperty(ref _isBackupCancelled, value);
+        }
+
         private string _selectedUserProfile = "";
         public string SelectedUserProfile
         {
@@ -126,6 +140,8 @@ namespace ApexDiagnostics.ViewModels
         public ICommand CancelBackupWizardCommand { get; }
         public ICommand BrowseBackupDestCommand { get; }
         public ICommand StartWizardBackupCommand { get; }
+        public ICommand PauseBackupCommand { get; }
+        public ICommand StopBackupCommand { get; }
 
         public ExplorerViewModel(TelemetryManager telemetry)
         {
@@ -142,6 +158,8 @@ namespace ApexDiagnostics.ViewModels
             CancelBackupWizardCommand = new RelayCommand(() => IsBackupWizardVisible = false, () => !IsBackingUp);
             BrowseBackupDestCommand = new RelayCommand(ExecuteBrowseBackupDest, () => !IsBackingUp);
             StartWizardBackupCommand = new RelayCommand(ExecuteStartWizardBackup, () => !IsBackingUp);
+            PauseBackupCommand = new RelayCommand(ExecutePauseBackup, () => IsBackingUp);
+            StopBackupCommand = new RelayCommand(ExecuteStopBackup, () => IsBackingUp);
 
             RefreshDrives();
         }
@@ -280,52 +298,61 @@ namespace ApexDiagnostics.ViewModels
 
         private void CopyDirectory(string source, string dest)
         {
+            if (IsBackupCancelled) return;
             try
             {
                 Directory.CreateDirectory(dest);
                 foreach (string file in Directory.GetFiles(source))
                 {
+                    if (IsBackupCancelled) return;
+                    while (IsBackupPaused && !IsBackupCancelled)
+                    {
+                        System.Threading.Thread.Sleep(100);
+                    }
+                    if (IsBackupCancelled) return;
+
                     string name = Path.GetFileName(file);
                     string destFile = Path.Combine(dest, name);
                     try
                     {
                         File.Copy(file, destFile, true);
                         _copiedFilesCount++;
-                        App.Current.Dispatcher.Invoke(() =>
+                        App.Current.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
                             BackupLogs.Add($"[+] Rescued: {name}");
                             BackupStatus = $"[{_copiedFilesCount} files rescued] Copying: {name}";
-                        });
+                        }));
                     }
                     catch (Exception ex)
                     {
-                        App.Current.Dispatcher.Invoke(() =>
+                        App.Current.Dispatcher.BeginInvoke(new Action(() =>
                         {
                             if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
                             BackupLogs.Add($"[!] File Error ({name}): {ex.Message}");
-                        });
+                        }));
                     }
                 }
                 foreach (string folder in Directory.GetDirectories(source))
                 {
+                    if (IsBackupCancelled) return;
                     string name = Path.GetFileName(folder);
                     string destFolder = Path.Combine(dest, name);
-                    App.Current.Dispatcher.Invoke(() =>
+                    App.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
                         if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
                         BackupLogs.Add($"[📁] Directory: {name}");
-                    });
+                    }));
                     CopyDirectory(folder, destFolder);
                 }
             }
             catch (Exception ex)
             {
-                App.Current.Dispatcher.Invoke(() =>
+                App.Current.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
                     BackupLogs.Add($"[!] Dir Error: {ex.Message}");
-                });
+                }));
             }
         }
 
@@ -449,6 +476,8 @@ namespace ApexDiagnostics.ViewModels
             }
 
             IsBackingUp = true;
+            IsBackupPaused = false;
+            IsBackupCancelled = false;
             BackupProgress = 0;
             _copiedFilesCount = 0;
             BackupLogs.Clear();
@@ -593,10 +622,19 @@ namespace ApexDiagnostics.ViewModels
 
                     App.Current.Dispatcher.Invoke(() =>
                     {
-                        BackupStatus = "Data rescue completed successfully!";
                         IsBackingUp = false;
-                        IsBackupWizardVisible = false;
-                        MessageBox.Show($"Selected user backup completed successfully!\nSaved to: {targetDir}", "Rescue Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        if (IsBackupCancelled)
+                        {
+                            BackupStatus = "Backup aborted by user.";
+                            BackupLogs.Add("[SYSTEM] Backup process successfully aborted.");
+                            MessageBox.Show("Backup process has been aborted. Target folder contains incomplete data.", "Backup Aborted", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                        else
+                        {
+                            BackupStatus = "Backup completed successfully!";
+                            IsBackupWizardVisible = false;
+                            MessageBox.Show($"Selected user backup completed successfully!\nSaved to: {targetDir}", "Rescue Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                        }
                     });
                 }
                 catch (Exception ex)
@@ -609,6 +647,39 @@ namespace ApexDiagnostics.ViewModels
                     });
                 }
             });
+        }
+
+        private void ExecutePauseBackup()
+        {
+            IsBackupPaused = !IsBackupPaused;
+            App.Current.Dispatcher.Invoke(() =>
+            {
+                if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
+                if (IsBackupPaused)
+                {
+                    BackupLogs.Add("[SYSTEM] Backup PAUSED by user.");
+                    BackupStatus = "Backup session paused...";
+                }
+                else
+                {
+                    BackupLogs.Add("[SYSTEM] Backup RESUMED by user.");
+                    BackupStatus = "Resuming backup session...";
+                }
+            });
+        }
+
+        private void ExecuteStopBackup()
+        {
+            var res = MessageBox.Show("Are you sure you want to stop and abort the active backup process?", "Abort Backup", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (res == MessageBoxResult.Yes)
+            {
+                IsBackupCancelled = true;
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
+                    BackupLogs.Add("[SYSTEM] Aborting backup process...");
+                });
+            }
         }
     }
 }
