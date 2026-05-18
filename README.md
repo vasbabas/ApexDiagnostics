@@ -229,11 +229,8 @@ $ git push -u origin main
 To compile the application:
 
 ```bash
-# 1. Open your terminal in the source folder
-$ cd ApexDiagnostics
-
-# 2. Compile an optimized, single-executable release build
-$ dotnet publish -c Release -r win-x64 --self-contained true
+# 1. Open your terminal in the root folder
+$ dotnet build -c Release
 ```
 
 ---
