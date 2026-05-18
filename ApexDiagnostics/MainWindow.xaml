@@ -5,7 +5,7 @@
         xmlns:views="clr-namespace:ApexDiagnostics.Views"
         Title="Apex Hardware Diagnostic Suite" Height="768" Width="1024"
         WindowStartupLocation="CenterScreen" Background="{StaticResource BgPrimaryBrush}"
-        Icon="Assets\apex_icon.png">
+        Icon="Assets/apex_icon.ico">
 
     <Window.DataContext>
         <vm:MainViewModel/>

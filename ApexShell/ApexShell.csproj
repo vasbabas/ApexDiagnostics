@@ -16,4 +16,8 @@
     <ApplicationIcon>apex_icon.ico</ApplicationIcon>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Resource Include="apex_icon.ico" />
+  </ItemGroup>
+
 </Project>
