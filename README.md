@@ -1,11 +1,5 @@
 <p align="center">
-  <code style="font-family: monospace; font-size: 14px; color: #58a6ff; background-color: #161b22; padding: 10px 20px; border-radius: 6px; border: 1px solid #30363d; display: inline-block; box-shadow: 0 4px 20px rgba(0,0,0,0.4); text-shadow: 0 0 10px rgba(88,166,255,0.5);">
-    &nbsp;___&nbsp;&nbsp;&nbsp;&nbsp;____&nbsp;&nbsp;&nbsp;_______&nbsp;&nbsp;__&nbsp;&nbsp;__&nbsp;<br/>
-    &nbsp;/&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;/&nbsp;__&nbsp;\&nbsp;/&nbsp;____/&nbsp;\&nbsp;\/&nbsp;/&nbsp;<br/>
-    /&nbsp;/|&nbsp;|&nbsp;/&nbsp;/_/&nbsp;//&nbsp;__/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\&nbsp;&nbsp;/&nbsp;&nbsp;<br/>
-    /&nbsp;___&nbsp;|/&nbsp;____//&nbsp;/___&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;\&nbsp;<br/>
-    /_/&nbsp;&nbsp;|_/_/&nbsp;&nbsp;&nbsp;&nbsp;/_____/&nbsp;&nbsp;&nbsp;&nbsp;/_/\_\
-  </code>
+  <img src="ApexDiagnostics/Assets/apex_icon.png" alt="Apex Diagnostics Logo" width="160" height="160" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px;" />
 </p>
 
 <h1 align="center">🌌 Apex Diagnostics Suite v1.0.0</h1>
