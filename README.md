@@ -88,25 +88,68 @@ Engineered for migration to SSDs or cloning unstable, failing drives.
 
 ```mermaid
 graph TB
-    subgraph UI_Layer [User Interface]
-        WPF[WPF MVVM Engine] --> Gauges[Custom DrawingContext Gauges]
-        WPF --> Graphs[Sci-Fi Vector Charts]
-        WPF --> Theme[DarkTheme Styling Tokens]
+    %% Styling definitions for high-contrast presentation on GitHub
+    classDef ui fill:#1f232a,stroke:#58a6ff,stroke-width:2px,color:#fff;
+    classDef logic fill:#161b22,stroke:#ff7b72,stroke-width:2px,color:#fff;
+    classDef engine fill:#0d1117,stroke:#d2a8ff,stroke-width:2px,color:#fff;
+    classDef hardware fill:#21262d,stroke:#3fb950,stroke-width:2px,color:#fff;
+
+    subgraph UI_Layer ["📺 WPF Interactive View Layer (WPF / XAML)"]
+        DashView["Dashboard Overview Page"]:::ui
+        CpuView["CPU Stress & Watchdog Page"]:::ui
+        RamView["Memory Toxicity Sector Page"]:::ui
+        DiskView["Victoria Surface Latency Page"]:::ui
+        ExpView["File Explorer & Rescue Page"]:::ui
+        CloneView["Raw Disk Cloner & Wiper Page"]:::ui
     end
 
-    subgraph Logic_Layer [Business & Telemetry Logic]
-        VM[ViewModels Layer] --> Telemetry[Telemetry Manager]
-        VM --> Lang[LanguageManager Engine]
-        VM --> Watchdog[Safety Watchdog Ceiling]
+    subgraph Logic_Layer ["🧠 MVVM Orchestration & State Layer (C# ViewModels)"]
+        Telemetry["TelemetryManager<br/>(Live Hardware telemetries)"]:::logic
+        Watchdog["SafetyWatchdog<br/>(Safety Thermal Ceiling Monitor)"]:::logic
+        Lang["LanguageManager<br/>(Dynamic Multilingual Dictionary)"]:::logic
+        StateVMs["ViewModel Bindings<br/>(Command Execution States)"]:::logic
     end
 
-    subgraph OS_Kernel_Layer [Windows & WinPE Core]
-        WMI[WMI CIM Query Pipeline] --> Telemetry
-        RawIO[Raw Win32 Handles kernel32.dll] --> PhysDrive["\\.\PhysicalDrive"]
+    subgraph Engine_Layer ["⚡ High-Performance Execution Layer (Async Engines)"]
+        CpuStressEng["CpuTortureEngine<br/>(Multi-threaded core stress tasks)"]:::engine
+        RamDiagEng["RamDiagnosticEngine<br/>(Memory allocation scanners)"]:::engine
+        VictoriaScan["VictoriaDiskSurfaceScanner<br/>(Physical block latency profiler)"]:::engine
+        DiskCloneEng["DirectDiskCloningEngine<br/>(Double-buffered 4MB block cloner)"]:::engine
+        FileRescueEng["AsyncDataRescueEngine<br/>(Non-blocking profile backup stream)"]:::engine
     end
 
-    WPF <-->|Data Bindings| VM
-    PhysDrive -->|Sector Write / Latency Scan| Victoria[Disk Surface & Cloner Engine]
+    subgraph Kernel_Layer ["🔌 Bare-Metal Kernel & Hardware Layer (OS / Drivers)"]
+        WMIData["WMI & CIM Telemetry Pipeline<br/>(CPU Temp, Board Info)"]:::hardware
+        KernelAPI["Raw kernel32.dll IO Handles<br/>(CreateFile / ReadFile / WriteFile)"]:::hardware
+        PhysicalDrives["\\.\PhysicalDriveX<br/>(Direct bare-metal sectors)"]:::hardware
+    end
+
+    %% UI to ViewModel Bindings
+    DashView <-->|Data Bindings| Telemetry
+    CpuView <-->|Start/Stop & Watchdog Values| Watchdog
+    RamView <-->|Sector Allocation Grids| StateVMs
+    DiskView <-->|Latency Category Statistics| StateVMs
+    ExpView <-->|Rescue File Tree| StateVMs
+    CloneView <-->|Wipe Target Confirmation Safeguard| StateVMs
+
+    %% ViewModels to Execution Engines
+    Watchdog -->|Thermal Overheat Abort Trigger| CpuStressEng
+    Telemetry <-->|Real-time Performance Metrics| CpuStressEng
+    StateVMs -->|Start Scan / Allocate Blocks| RamDiagEng
+    StateVMs -->|Direct Drive Handle Scanner| VictoriaScan
+    StateVMs -->|Target Backup Path IO| FileRescueEng
+    StateVMs -->|Destructive Sector Copy Sequence| DiskCloneEng
+
+    %% Execution Engines to Hardware Kernel
+    CpuStressEng -->|Native Processor Workload Tasks| WMIData
+    RamDiagEng -->|Direct Allocation Pages API| WMIData
+    VictoriaScan -->|Block Level Raw IO Stream| KernelAPI
+    FileRescueEng -->|Target Volume File System IO| KernelAPI
+    DiskCloneEng -->|Sector-by-Sector Write stream| PhysicalDrives
+
+    %% Hardware to Telemetry
+    WMIData --> Telemetry
+    KernelAPI --> PhysicalDrives
 ```
 
 ---
