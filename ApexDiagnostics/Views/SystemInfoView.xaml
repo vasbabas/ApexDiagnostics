@@ -19,7 +19,7 @@
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                <Button Content="CREATE WINPE ISO" Style="{StaticResource AccentButton}" Command="{Binding OpenBuilderCommand}" Margin="0,0,10,0" Width="140" Height="32">
+                <Button Content="{DynamicResource BtnCreateWinpeIso}" Style="{StaticResource AccentButton}" Command="{Binding OpenBuilderCommand}" Margin="0,0,10,0" Width="150" Height="32">
                     <Button.Effect>
                         <DropShadowEffect BlurRadius="10" Color="#58A6FF" Opacity="0.3" ShadowDepth="0"/>
                     </Button.Effect>
