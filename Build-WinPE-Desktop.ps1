@@ -27,12 +27,15 @@ Write-Host "Verifying ADK Installation..." -ForegroundColor Cyan
 
 # Auto-detect Windows ADK path from common installations or Desktop folders
 $DetectedAdkPath = $null
+$DesktopPath = [Environment]::GetFolderPath([Environment+SpecialFolder]::Desktop)
+$MasaustuFolder = "Masa" + [char]0x00fc + "st" + [char]0x00fc
+
 $AdkSearchPaths = @(
     "C:\Program Files (x86)\Windows Kits\10\Assessment and Deployment Kit",
-    "$env:USERPROFILE\Desktop\Assessment and Deployment Kit",
-    "$env:USERPROFILE\Desktop\Masaüstü\Assessment and Deployment Kit",
-    "C:\Users\User\Desktop\Assessment and Deployment Kit",
-    "C:\Users\User\Desktop\Masaüstü\Assessment and Deployment Kit"
+    (Join-Path $DesktopPath "Assessment and Deployment Kit"),
+    (Join-Path $DesktopPath (Join-Path $MasaustuFolder "Assessment and Deployment Kit")),
+    "C:\Users\User\Desktop\Masaüstü\Assessment and Deployment Kit",
+    "C:\Users\User\Desktop\Masaustu\Assessment and Deployment Kit"
 )
 
 foreach ($path in $AdkSearchPaths) {
