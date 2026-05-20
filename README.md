@@ -42,7 +42,7 @@ Apex Diagnostics is not just another hardware tester; it is an industrial-grade 
 | **📁 Data Rescue Wizard** | Asynchronous backup for user documents, offline credentials, and security keys. | Non-blocking Copy | Asynchronous IO Stream |
 | **💿 Disk Cloner & Wiper** | Sector-by-sector drive cloning with local threat verification safeguards. | Bare-Metal Duplication | `kernel32.dll` (Direct Sectors) |
 | **🩺 S.M.A.R.T. Analyzer** | Queries direct disk firmware logs for sector health and power-on hours telemetry. | Hardware Queries | WMI `root\wmi` (FailurePredictData) |
-| **⚡ WinPE Creator GUI** | Single-click compilation and packaging into a bootable Windows PE ISO. | Background Subprocess | Asynchronous `Process` stdout redirect |
+| **🚀 Win10XPE Ready** | Fully compatible with custom Win10XPE integration for advanced diagnostics. | WinPE Deployment | Native WPF Hardware Fallback |
 
 ---
 
@@ -80,11 +80,11 @@ Engineered for migration to SSDs or cloning unstable, failing drives.
 * **Low-Level Sector Duplication:** Sector-by-sector copying using raw disk handles (`\\\\.\\PhysicalDriveX`).
 * **Wipe Safeguard Card:** Highlighted safety warning card outlining source and target disks with explicit user confirmation prompts to prevent data loss.
 
-### 6. ⚡ Bootable WinPE ISO Creator GUI
-Integrated packaging dashboard designed to package Apex Diagnostics into a bootable recovery environment.
-* **One-Click Automated Packaging:** Triggers asynchronous background compilation and packaging scripts.
-* **Live Monospace Log Console:** Fully redirected standard output and standard error logs streaming directly to an interactive terminal-styled console.
-* **Zero-Dependency Browsing:** Seamless target ISO folder selection and local Windows ADK folder path auto-extraction using native file dialogs.
+### 6. 💿 Win10XPE Deployment Integration
+Apex Diagnostics and ApexShell are fully optimized to run inside custom Win10XPE diagnostic builds.
+* **Software-Only Rendering Fallback:** Automatically overrides GPU hardware acceleration at startup to render crisp UI screens on systems lacking graphics drivers.
+* **Win10XPE Startup Shell:** Replace the default shell or configure it via `PECmd.ini` to load `ApexShell.exe` instantly at boot.
+* **Standalone Portable Executables:** All output files are compiled as self-contained binaries, ensuring they execute on bare-metal environments with zero dependencies.
 
 ---
 
@@ -164,8 +164,8 @@ graph TB
 Apex/
 ├── README.md                            # Professional Repo Landing Page
 ├── .gitignore                           # Excludes VS Cache, Bin, Obj, and WinPE Temp files
-├── Build-WinPE-Desktop.ps1              # Automation script for WinPE ISO construction
-├── Build-ISO.bat                        # WinPE Build entry point
+├── Build.bat                            # Application compilation script (dotnet publish launcher)
+├── Explorer++.exe                       # Standalone portable file manager used by Shell
 └── ApexDiagnostics/                     # WPF Core Project Source
     ├── App.xaml                         # Styles, Brushes, and Global Configurations
     ├── MainWindow.xaml                  # Application Frame and Navigation Shell
@@ -220,12 +220,26 @@ $ git push -u origin main
 
 ## 📦 Build & Deployment
 
-To compile the application:
+To compile the application and prepare the binaries for Win10XPE:
 
-```bash
-# 1. Open your terminal in the root folder
-$ dotnet build -c Release
-```
+1. **Automatic Build Script:**
+   Double-click `Build.bat` in the root folder or execute it from the terminal:
+   ```bash
+   $ .\Build.bat
+   ```
+   This will clean old outputs and compile `ApexDiagnostics.exe` and `ApexShell.exe` into the `Build/` folder as self-contained Windows 64-bit binaries.
+
+2. **Manual Compilation:**
+   You can compile them directly using the .NET CLI:
+   ```bash
+   $ dotnet publish ApexDiagnostics/ApexDiagnostics.csproj -c Release -r win-x64 --self-contained true -o ./Build
+   $ dotnet publish ApexShell/ApexShell.csproj -c Release -r win-x64 --self-contained true -o ./Build
+   ```
+
+3. **Win10XPE Integration:**
+   - Copy the contents of the generated `Build/` folder (including `ApexDiagnostics.exe`, `ApexShell.exe`, and `Explorer++.exe`) to your Win10XPE custom folder.
+   - For auto-start at boot, add your executable (e.g., `ApexShell.exe`) to your Win10XPE `PECmd.ini` file or configure it as the custom Windows shell.
+   - **Crucial:** Ensure that **.NET Framework/Core** and **Graphics/Direct3D** support are checked/enabled in your Win10XPE Builder to support WPF graphics.
 
 ---
 

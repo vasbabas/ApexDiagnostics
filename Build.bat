@@ -43,6 +43,16 @@ if %errorlevel% neq 0 (
     goto :errorExit
 )
 
+:: Copy Explorer++.exe to Build directory if it exists in the root
+if exist "%~dp0Explorer++.exe" (
+    echo.
+    echo [INFO] Copying Explorer++.exe to Build folder...
+    copy /y "%~dp0Explorer++.exe" "%~dp0Build\Explorer++.exe" >nul
+) else (
+    echo.
+    echo [WARNING] Explorer++.exe not found in root folder! WinPE will lack a file manager.
+)
+
 :: Final Verification Check
 if not exist "%~dp0Build\ApexDiagnostics.exe" (
     color 0c
@@ -72,8 +82,9 @@ echo.
 echo           - ApexDiagnostics.exe  (WinPE-Compatible, Single File)
 echo           - ApexShell.exe        (Shell Host Bootloader, Single File)
 echo.
-echo [NEXT STEP] You can now double-click 'Build-ISO.bat' in the root
-echo             directory to compile your bootable WinPE ISO!
+echo [NEXT STEP] Copy the compiled files from the 'Build' folder
+echo             into your Win10XPE project/plugin directory
+echo             to package and run them in your custom ISO.
 echo.
 echo ==========================================================
 pause

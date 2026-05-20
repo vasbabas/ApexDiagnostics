@@ -25,6 +25,49 @@ namespace ApexDiagnostics.ViewModels
     public class ExplorerViewModel : ViewModelBase
     {
         private readonly TelemetryManager _telemetry;
+        private readonly object _logLock = new();
+        private readonly List<string> _pendingLogs = new();
+        private readonly Stopwatch _uiUpdateStopwatch = new();
+
+        private void LogAndStatusUpdate(string? newLogLine, string newStatus, bool force = false)
+        {
+            lock (_logLock)
+            {
+                if (newLogLine != null)
+                {
+                    _pendingLogs.Add(newLogLine);
+                }
+            }
+
+            if (force || !_uiUpdateStopwatch.IsRunning || _uiUpdateStopwatch.ElapsedMilliseconds > 150)
+            {
+                if (!_uiUpdateStopwatch.IsRunning)
+                {
+                    _uiUpdateStopwatch.Start();
+                }
+                else
+                {
+                    _uiUpdateStopwatch.Restart();
+                }
+
+                List<string> logsToFlush;
+                lock (_logLock)
+                {
+                    logsToFlush = new List<string>(_pendingLogs);
+                    _pendingLogs.Clear();
+                }
+
+                App.Current.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    foreach (var log in logsToFlush)
+                    {
+                        if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
+                        BackupLogs.Add(log);
+                    }
+                    BackupStatus = newStatus;
+                }));
+            }
+        }
         
         private string _currentDirectory = "";
         public string CurrentDirectory
@@ -317,20 +360,11 @@ namespace ApexDiagnostics.ViewModels
                     {
                         File.Copy(file, destFile, true);
                         _copiedFilesCount++;
-                        App.Current.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
-                            BackupLogs.Add($"[+] Rescued: {name}");
-                            BackupStatus = $"[{_copiedFilesCount} files rescued] Copying: {name}";
-                        }));
+                        LogAndStatusUpdate($"[+] Rescued: {name}", $"[{_copiedFilesCount} files rescued] Copying: {name}");
                     }
                     catch (Exception ex)
                     {
-                        App.Current.Dispatcher.BeginInvoke(new Action(() =>
-                        {
-                            if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
-                            BackupLogs.Add($"[!] File Error ({name}): {ex.Message}");
-                        }));
+                        LogAndStatusUpdate($"[!] File Error ({name}): {ex.Message}", $"[{_copiedFilesCount} files rescued] Copying: {name}");
                     }
                 }
                 foreach (string folder in Directory.GetDirectories(source))
@@ -338,21 +372,13 @@ namespace ApexDiagnostics.ViewModels
                     if (IsBackupCancelled) return;
                     string name = Path.GetFileName(folder);
                     string destFolder = Path.Combine(dest, name);
-                    App.Current.Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
-                        BackupLogs.Add($"[📁] Directory: {name}");
-                    }));
+                    LogAndStatusUpdate($"[📁] Directory: {name}", $"[{_copiedFilesCount} files rescued] Entering folder: {name}");
                     CopyDirectory(folder, destFolder);
                 }
             }
             catch (Exception ex)
             {
-                App.Current.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
-                    BackupLogs.Add($"[!] Dir Error: {ex.Message}");
-                }));
+                LogAndStatusUpdate($"[!] Dir Error: {ex.Message}", $"[{_copiedFilesCount} files rescued] Error in folder: {Path.GetFileName(source)}");
             }
         }
 
@@ -486,6 +512,13 @@ namespace ApexDiagnostics.ViewModels
             BackupLogs.Add($"[SYSTEM] Destination: {SelectedBackupDest}");
             BackupStatus = "Preparing data recovery session...";
 
+            // Initialize stopwatch and list for throttled UI updates
+            _uiUpdateStopwatch.Restart();
+            lock (_logLock)
+            {
+                _pendingLogs.Clear();
+            }
+
             System.Threading.Tasks.Task.Run(() =>
             {
                 try
@@ -494,14 +527,14 @@ namespace ApexDiagnostics.ViewModels
                     string targetDir = Path.Combine(SelectedBackupDest, $"Backup_{SelectedUserProfile}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
                     Directory.CreateDirectory(targetDir);
                     
-                    App.Current.Dispatcher.Invoke(() => BackupLogs.Add($"[SYSTEM] Rescue folder created: {Path.GetFileName(targetDir)}"));
+                    LogAndStatusUpdate($"[SYSTEM] Rescue folder created: {Path.GetFileName(targetDir)}", "Preparing data recovery session...", true);
 
                     string[] subFolders = { "Desktop", "Documents", "Pictures", "Downloads" };
                     double stepWeight = 100.0 / (subFolders.Length + (BackupCredentials ? 1 : 0) + (BackupRootCustomFolders ? 1 : 0));
 
                     foreach (var folder in subFolders)
                     {
-                        App.Current.Dispatcher.Invoke(() => BackupStatus = $"Rescuing user {folder} folder...");
+                        LogAndStatusUpdate(null, $"Rescuing user {folder} folder...", true);
                         
                         string src = Path.Combine(sourceUserDir, folder);
                         string dst = Path.Combine(targetDir, folder);
@@ -511,12 +544,13 @@ namespace ApexDiagnostics.ViewModels
                             CopyDirectory(src, dst);
                         }
 
+                        LogAndStatusUpdate(null, $"Completed user {folder} folder.", true);
                         App.Current.Dispatcher.Invoke(() => BackupProgress += stepWeight);
                     }
 
                     if (BackupRootCustomFolders)
                     {
-                        App.Current.Dispatcher.Invoke(() => BackupStatus = "Scanning C:\\ root for custom folders...");
+                        LogAndStatusUpdate(null, "Scanning C:\\ root for custom folders...", true);
                         
                         string[] standardSystemDirs = {
                             "windows", "program files", "program files (x86)", "programdata", "users",
@@ -545,7 +579,7 @@ namespace ApexDiagnostics.ViewModels
                                             foundCustom = true;
                                         }
 
-                                        App.Current.Dispatcher.Invoke(() => BackupStatus = $"Rescuing C:\\{name} custom folder...");
+                                        LogAndStatusUpdate(null, $"Rescuing C:\\{name} custom folder...", true);
                                         CopyDirectory(dir, Path.Combine(targetRootRescueDir, name));
                                     }
                                 }
@@ -568,7 +602,7 @@ namespace ApexDiagnostics.ViewModels
                                             foundCustom = true;
                                         }
 
-                                        App.Current.Dispatcher.Invoke(() => BackupStatus = $"Rescuing loose file C:\\{name}...");
+                                        LogAndStatusUpdate($"[+] Rescued loose file: {name}", $"Rescuing loose file C:\\{name}...");
                                         try
                                         {
                                             File.Copy(file, Path.Combine(targetRootRescueDir, name), true);
@@ -583,12 +617,13 @@ namespace ApexDiagnostics.ViewModels
                             Logger.Log($"Error scanning C:\\ root custom folders: {ex.Message}", "WARN");
                         }
 
+                        LogAndStatusUpdate(null, "Completed scanning C:\\ root custom folders.", true);
                         App.Current.Dispatcher.Invoke(() => BackupProgress += stepWeight);
                     }
 
                     if (BackupCredentials)
                     {
-                        App.Current.Dispatcher.Invoke(() => BackupStatus = "Backing up Windows Credentials & DPAPI Keys...");
+                        LogAndStatusUpdate(null, "Backing up Windows Credentials & DPAPI Keys...", true);
                         string credentialsBackupPath = Path.Combine(targetDir, "Windows_Credentials");
                         Directory.CreateDirectory(credentialsBackupPath);
 
@@ -617,8 +652,12 @@ namespace ApexDiagnostics.ViewModels
                         }
                         catch { /* Silent skip if running in offline PE mode */ }
 
+                        LogAndStatusUpdate(null, "Windows Credentials backup complete.", true);
                         App.Current.Dispatcher.Invoke(() => BackupProgress = 100);
                     }
+
+                    // Flush any final logs remaining in buffer before completing
+                    LogAndStatusUpdate(null, IsBackupCancelled ? "Backup aborted." : "Backup completed successfully!", true);
 
                     App.Current.Dispatcher.Invoke(() =>
                     {
@@ -639,6 +678,9 @@ namespace ApexDiagnostics.ViewModels
                 }
                 catch (Exception ex)
                 {
+                    // Flush logs in case of error
+                    LogAndStatusUpdate(null, $"Error: {ex.Message}", true);
+                    
                     App.Current.Dispatcher.Invoke(() =>
                     {
                         BackupStatus = $"Error: {ex.Message}";
