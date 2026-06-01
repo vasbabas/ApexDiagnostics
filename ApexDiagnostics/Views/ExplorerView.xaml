@@ -44,7 +44,7 @@
                 <!-- Glowing Quick Data Recovery Button -->
                 <Button Grid.Column="2" Content="{DynamicResource BtnBackupWizard}" Command="{Binding ShowBackupWizardCommand}" 
                         Background="#FF17C3B2" Foreground="Black" FontWeight="Bold" FontSize="11" 
-                        Width="140" Height="32" Margin="15,0,0,0" BorderThickness="0">
+                        Width="Auto" MinWidth="140" Padding="12,0" Height="32" Margin="15,0,0,0" BorderThickness="0">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="Template">
@@ -191,7 +191,7 @@
         <!-- Asynchronous Data Recovery Wizard Overlay -->
         <Grid Grid.RowSpan="3" Background="#90000000" Visibility="{Binding IsBackupWizardVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
             <Border Style="{StaticResource CardBorder}" BorderBrush="{StaticResource AccentBlueBrush}" BorderThickness="1.5"
-                    Width="500" Height="580" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="25">
+                    Width="520" Height="680" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="25">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -205,8 +205,22 @@
                         <TextBlock Text="Rescue user profiles and system vault credentials from local drives." Style="{StaticResource MetricLabel}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
 
-                    <!-- Wizard Steps / Fields -->
+                    <!-- Wizard Steps / Fields (Config Panel) -->
                     <StackPanel Grid.Row="1" Margin="0,5">
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Setter Property="Visibility" Value="Visible"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsPreviewVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        
                         <!-- Step 1: Select User profile -->
                         <TextBlock Text="{DynamicResource WizSelectProfile}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,6" TextWrapping="Wrap"/>
                         <ComboBox ItemsSource="{Binding UserProfiles}" SelectedItem="{Binding SelectedUserProfile}" 
@@ -218,13 +232,13 @@
                         <Grid Margin="0,0,0,18">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="90"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <Border Grid.Column="0" Style="{StaticResource InnerCardBorder}" Padding="8,4" Height="36" VerticalAlignment="Center" CornerRadius="6,0,0,6">
                                 <TextBox Text="{Binding SelectedBackupDest}" Background="Transparent" BorderThickness="0" Foreground="White" VerticalAlignment="Center" IsReadOnly="True" FontSize="11"/>
                             </Border>
-                            <Button Grid.Column="1" Content="BROWSE..." Command="{Binding BrowseBackupDestCommand}" 
-                                    Style="{StaticResource AccentButton}" Height="36" Padding="5,2"/>
+                            <Button Grid.Column="1" Content="{DynamicResource BtnBrowse}" Command="{Binding BrowseBackupDestCommand}" 
+                                    Style="{StaticResource AccentButton}" Height="36" MinWidth="90" Padding="12,0" Margin="4,0,0,0"/>
                         </Grid>
 
                         <!-- Step 3: Extra Backups -->
@@ -237,29 +251,102 @@
                                   IsChecked="{Binding BackupRootCustomFolders}" 
                                   IsEnabled="{Binding IsBackingUp, Converter={StaticResource InverseBooleanConverter}, FallbackValue=True}"
                                   Foreground="White" FontSize="11" VerticalAlignment="Center" Margin="0,6,0,0"/>
+
+                        <!-- Custom Folders/Files Manual Selection ListBox -->
+                        <Border Height="110" Margin="0,8,0,0" BorderBrush="#3058A6FF" BorderThickness="1" Background="#0DFFFFFF" CornerRadius="4"
+                                Visibility="{Binding BackupRootCustomFolders, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <ListBox ItemsSource="{Binding CustomItemsToBackup}" Background="Transparent" BorderThickness="0" 
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelected}" 
+                                                  IsEnabled="{Binding DataContext.IsBackingUp, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource InverseBooleanConverter}, FallbackValue=True}"
+                                                  Foreground="White" FontSize="11" Margin="2,1">
+                                            <CheckBox.Content>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Icon}" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="380"/>
+                                                </StackPanel>
+                                            </CheckBox.Content>
+                                        </CheckBox>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
                     </StackPanel>
 
-                    <!-- Wizard Progress and Controls -->
-                    <Grid Grid.Row="2" Margin="0,15,0,0">
+                    <!-- Preview Panel (Visible when IsPreviewVisible == True and IsBackingUp == False) -->
+                    <Grid Grid.Row="1" Margin="0,5">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding IsPreviewVisible}" Value="True"/>
+                                            <Condition Binding="{Binding IsBackingUp}" Value="False"/>
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        
+                        <TextBlock Grid.Row="0" Text="{DynamicResource LabelBackupPreviewTitle}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        
+                        <Border Grid.Row="1" BorderBrush="#3058A6FF" BorderThickness="1.5" Background="#0DFFFFFF" CornerRadius="6" Padding="6">
+                            <ListBox ItemsSource="{Binding PreviewItems}" Background="Transparent" BorderThickness="0" 
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="4,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" FontSize="12" TextTrimming="CharacterEllipsis"/>
+                                                <TextBlock Text="{Binding SourcePath}" Foreground="#8B949E" FontSize="9" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="{Binding SizeInfo}" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold" FontSize="11" VerticalAlignment="Center" Margin="10,0,4,0"/>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Grid>
+
+                    <!-- Active Progress Panel (Visible when IsBackingUp == True) -->
+                    <Grid Grid.Row="1" Margin="0,5">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Progress Bar & Status Text & Scrolling Logs -->
-                        <Grid Grid.Row="0" Margin="0,0,0,15">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="{Binding BackupStatus}" Foreground="White" FontSize="11" Margin="0,0,0,6" TextTrimming="CharacterEllipsis"/>
-                            <ProgressBar Grid.Row="1" Value="{Binding BackupProgress}" Height="8" Foreground="#FF17C3B2" Background="#20FFFFFF"/>
-                            
-                            <!-- Neon Tech Console Log Window -->
-                            <ListBox x:Name="LogConsole" Grid.Row="2" ItemsSource="{Binding BackupLogs}" 
-                                     Background="#EE050B14" BorderBrush="#3058A6FF" BorderThickness="1" 
-                                     Height="140" Margin="0,12,0,0" Padding="8"
+                        <TextBlock Grid.Row="0" Text="{Binding BackupStatus}" Foreground="White" FontSize="12" Margin="0,0,0,8" TextTrimming="CharacterEllipsis" FontWeight="SemiBold"/>
+                        <ProgressBar Grid.Row="1" Value="{Binding BackupProgress}" Height="10" Foreground="#FF17C3B2" Background="#20FFFFFF" Margin="0,0,0,15"/>
+                        
+                        <!-- Neon Tech Console Log Window -->
+                        <Border Grid.Row="2" Background="#EE050B14" BorderBrush="#3058A6FF" BorderThickness="1.5" CornerRadius="6" Padding="8">
+                            <ListBox x:Name="LogConsole" ItemsSource="{Binding BackupLogs}" 
+                                     Background="Transparent" BorderThickness="0" Padding="0"
                                      ScrollViewer.VerticalScrollBarVisibility="Auto"
                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                                      Focusable="False">
@@ -269,59 +356,115 @@
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                        </Grid>
+                        </Border>
+                    </Grid>
 
-                        <!-- Actions -->
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <!-- Cancel Button (Hidden when backing up) -->
+                    <!-- Wizard Controls (Row 2) -->
+                    <Grid Grid.Row="2" Margin="0,15,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- CONFIG STATE BUTTONS -->
+                            <!-- Cancel Wizard Button (Closes wizard) -->
                             <Button Command="{Binding CancelBackupWizardCommand}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
                                         <Setter Property="Content" Value="{DynamicResource BtnCancel}"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                            </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsBackingUp}" Value="False"/>
+                                                    <Condition Binding="{Binding IsPreviewVisible}" Value="False"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <!-- Start Rescue Button (Hidden when backing up) -->
-                            <Button Command="{Binding StartWizardBackupCommand}" Width="Auto" MinWidth="130" Height="32" Padding="15,2">
+                            
+                            <!-- Scan & Preview Button -->
+                            <Button Command="{Binding ShowPreviewCommand}" Width="Auto" MinWidth="140" Height="32" Padding="15,2">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource GreenButton}">
-                                        <Setter Property="Content" Value="{DynamicResource BtnStartRescue}"/>
+                                        <Setter Property="Content" Value="{DynamicResource BtnPreviewFiles}"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
-                                                <Setter Property="Visibility" Value="Collapsed"/>
-                                            </DataTrigger>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsBackingUp}" Value="False"/>
+                                                    <Condition Binding="{Binding IsPreviewVisible}" Value="False"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <!-- Pause Backup Button (Only visible when backing up) -->
+
+                            <!-- PREVIEW STATE BUTTONS -->
+                            <!-- Go Back Button (Return to configurations) -->
+                            <Button Command="{Binding CancelPreviewCommand}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                        <Setter Property="Content" Value="{DynamicResource BtnGoBack}"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsBackingUp}" Value="False"/>
+                                                    <Condition Binding="{Binding IsPreviewVisible}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                            
+                            <!-- Confirm and Start Backup Button -->
+                            <Button Command="{Binding StartWizardBackupCommand}" Width="Auto" MinWidth="140" Height="32" Padding="15,2">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource GreenButton}">
+                                        <Setter Property="Content" Value="{DynamicResource BtnStartBackup}"/>
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding IsBackingUp}" Value="False"/>
+                                                    <Condition Binding="{Binding IsPreviewVisible}" Value="True"/>
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <!-- ACTIVE BACKUP STATE BUTTONS -->
+                            <!-- Pause Backup Button -->
                             <Button Command="{Binding PauseBackupCommand}" Width="Auto" MinWidth="100" Height="32" Margin="0,0,10,0" Padding="15,2">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource AccentButton}">
-                                        <Setter Property="Content" Value="PAUSE"/>
+                                        <Setter Property="Content" Value="{DynamicResource BtnPause}"/>
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsBackingUp}" Value="True">
                                                 <Setter Property="Visibility" Value="Visible"/>
                                             </DataTrigger>
                                             <DataTrigger Binding="{Binding IsBackupPaused}" Value="True">
-                                                <Setter Property="Content" Value="RESUME"/>
+                                                <Setter Property="Content" Value="{DynamicResource BtnResume}"/>
                                                 <Setter Property="Background" Value="#FF9F1C"/>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <!-- Stop Backup Button (Only visible when backing up) -->
+                            
+                            <!-- Stop/Abort Backup Button -->
                             <Button Command="{Binding StopBackupCommand}" Width="Auto" MinWidth="100" Height="32" Padding="15,2">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource DangerButton}">
-                                        <Setter Property="Content" Value="STOP"/>
+                                        <Setter Property="Content" Value="{DynamicResource BtnStop}"/>
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsBackingUp}" Value="True">

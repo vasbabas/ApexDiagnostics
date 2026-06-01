@@ -89,22 +89,92 @@
 
             <!-- Left Panel: Drive Selection -->
             <Border Grid.Column="0" Style="{StaticResource CardBorder}" Margin="0,0,15,0" Padding="20">
-                <StackPanel>
-                    <TextBlock Text="{DynamicResource SelectSourceDisk}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                    <ComboBox ItemsSource="{Binding Disks}" SelectedItem="{Binding SelectedSource}" DisplayMemberPath="DisplayName" Height="38" Margin="0,0,0,25" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource SelectSourceDisk}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <ComboBox ItemsSource="{Binding Disks}" SelectedItem="{Binding SelectedSource}" DisplayMemberPath="DisplayName" Height="38" Margin="0,0,0,25" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}"/>
 
-                    <TextBlock Text="{DynamicResource SelectTargetDisk}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
-                    <ComboBox ItemsSource="{Binding Disks}" SelectedItem="{Binding SelectedDest}" DisplayMemberPath="DisplayName" Height="38" Margin="0,0,0,25" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}"/>
+                        <TextBlock Text="{DynamicResource SelectTargetDisk}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <ComboBox ItemsSource="{Binding Disks}" SelectedItem="{Binding SelectedDest}" DisplayMemberPath="DisplayName" Height="38" Margin="0,0,0,25" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}"/>
 
-                    <Border Style="{StaticResource InnerCardBorder}" BorderBrush="{StaticResource AccentBlueBrush}" BorderThickness="1" Padding="15">
-                        <StackPanel>
-                            <TextBlock Text="{DynamicResource CloningInfoTitle}" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"/>
-                            <TextBlock Text="{DynamicResource CloningInfo1}" Foreground="#A0FFFFFF" FontSize="10.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                            <TextBlock Text="{DynamicResource CloningInfo2}" Foreground="#A0FFFFFF" FontSize="10.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                            <TextBlock Text="{DynamicResource CloningInfo3}" Foreground="{StaticResource AccentOrangeBrush}" FontSize="10.5" TextWrapping="Wrap" FontWeight="SemiBold"/>
+                        <!-- Clone Type Selection -->
+                        <TextBlock Text="{DynamicResource LabelCloneTypeSelect}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,25" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}">
+                            <RadioButton Content="{DynamicResource OptFullDiskClone}" 
+                                         IsChecked="{Binding CloneType, Converter={StaticResource EqualityConverter}, ConverterParameter=Full}" 
+                                         GroupName="CloneTypeGroup" 
+                                         Margin="0,0,20,0" 
+                                         Foreground="White" 
+                                         VerticalAlignment="Center"/>
+                            <RadioButton Content="{DynamicResource OptPartitionClone}" 
+                                         IsChecked="{Binding CloneType, Converter={StaticResource EqualityConverter}, ConverterParameter=Partition}" 
+                                         GroupName="CloneTypeGroup" 
+                                         Foreground="White" 
+                                         VerticalAlignment="Center"/>
                         </StackPanel>
-                    </Border>
-                </StackPanel>
+
+                        <!-- Partition Checklist Container -->
+                        <Grid Margin="0,0,0,25">
+                            <Grid.Style>
+                                <Style TargetType="Grid">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsPartitionCloneSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Grid.Style>
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource OptPartitionClone}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                                <Border Style="{StaticResource InnerCardBorder}" MaxHeight="200" Padding="5">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                        <ItemsControl ItemsSource="{Binding SourcePartitions}" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <CheckBox IsChecked="{Binding IsSelected}" Margin="5" Foreground="White" VerticalContentAlignment="Center">
+                                                        <TextBlock Text="{Binding DisplayName}" Foreground="White" TextWrapping="Wrap"/>
+                                                    </CheckBox>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </ScrollViewer>
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Advanced Options -->
+                        <TextBlock Text="{DynamicResource LabelExtraCloneOpts}" Style="{StaticResource MetricLabel}" FontWeight="Bold" Margin="0,0,0,10" TextWrapping="Wrap"/>
+                        <StackPanel Margin="0,0,0,25" IsEnabled="{Binding IsCloning, Converter={StaticResource InverseBooleanConverter}}">
+                            <!-- Fit Partitions - Mandatory, Checked, disabled to toggle -->
+                            <CheckBox IsChecked="{Binding FitPartitions}" IsEnabled="False" Margin="0,0,0,8" Foreground="White" VerticalContentAlignment="Center">
+                                <TextBlock Text="{DynamicResource OptFitPartitions}" Foreground="#A0FFFFFF" TextWrapping="Wrap"/>
+                            </CheckBox>
+                            <!-- Sector-by-sector clone -->
+                            <CheckBox IsChecked="{Binding SectorBySectorClone}" Margin="0,0,0,8" Foreground="White" VerticalContentAlignment="Center">
+                                <TextBlock Text="{DynamicResource OptSectorBySector}" Foreground="White" TextWrapping="Wrap"/>
+                            </CheckBox>
+                            <!-- Skip bad sectors -->
+                            <CheckBox IsChecked="{Binding SkipBadSectors}" Margin="0,0,0,8" Foreground="White" VerticalContentAlignment="Center">
+                                <TextBlock Text="{DynamicResource OptSkipBadSectors}" Foreground="White" TextWrapping="Wrap"/>
+                            </CheckBox>
+                            <!-- Align partitions -->
+                            <CheckBox IsChecked="{Binding AlignPartitions}" Margin="0,0,0,8" Foreground="White" VerticalContentAlignment="Center">
+                                <TextBlock Text="{DynamicResource OptAlignPartitions}" Foreground="White" TextWrapping="Wrap"/>
+                            </CheckBox>
+                        </StackPanel>
+
+                        <!-- Cloning Info Message Box -->
+                        <Border Style="{StaticResource InnerCardBorder}" BorderBrush="{StaticResource AccentBlueBrush}" BorderThickness="1" Padding="15">
+                            <StackPanel>
+                                <TextBlock Text="{DynamicResource CloningInfoTitle}" Foreground="{StaticResource AccentBlueBrush}" FontWeight="Bold" FontSize="11" Margin="0,0,0,8" TextWrapping="Wrap"/>
+                                <TextBlock Text="{DynamicResource CloningInfo1}" Foreground="#A0FFFFFF" FontSize="10.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="{DynamicResource CloningInfo2}" Foreground="#A0FFFFFF" FontSize="10.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                <TextBlock Text="{DynamicResource CloningInfo3}" Foreground="{StaticResource AccentOrangeBrush}" FontSize="10.5" TextWrapping="Wrap" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
 
             <!-- Right Panel: Diagnostics Telemetry -->

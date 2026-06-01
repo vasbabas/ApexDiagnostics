@@ -134,6 +134,9 @@
     <system:String x:Key="WizOptRoot">C: Sürücüsündeki Diğer Dosya ve Klasörleri Tara &amp; Kurtar</system:String>
     <system:String x:Key="BtnStartRescue">KURTARMAYI BAŞLAT</system:String>
     <system:String x:Key="BtnCancel">İPTAL</system:String>
+    <system:String x:Key="BtnPause">DURAKLAT</system:String>
+    <system:String x:Key="BtnResume">DEVAM ET</system:String>
+    <system:String x:Key="BtnStop">DURDUR</system:String>
     
     <!-- Disk Cloner -->
     <system:String x:Key="TitleClone">DÜŞÜK SEVİYELİ BİREBİR DİSK KLONLAMA</system:String>
@@ -193,4 +196,18 @@
     <system:String x:Key="BtnClose">KAPAT</system:String>
     <system:String x:Key="BtnExportReport">RAPORU DIŞA AKTAR</system:String>
     <system:String x:Key="BtnRefresh">YENİLE</system:String>
+
+    <!-- New Clone & Backup Keys -->
+    <system:String x:Key="LabelCloneTypeSelect">KLONLAMA TİPİ SEÇİMİ (ZORUNLU)</system:String>
+    <system:String x:Key="OptFullDiskClone">Tam Disk Klonlama (Full Disk Clone)</system:String>
+    <system:String x:Key="OptPartitionClone">Bölüm Klonlama (Partition Clone)</system:String>
+    <system:String x:Key="LabelExtraCloneOpts">EK KLONLAMA SEÇENEKLERİ</system:String>
+    <system:String x:Key="OptFitPartitions">Bölümleri hedef diske sığdır (Fit partitions - Zorunlu)</system:String>
+    <system:String x:Key="OptSectorBySector">Sektör sektör klonla (Sector-by-sector clone)</system:String>
+    <system:String x:Key="OptSkipBadSectors">Bozuk sektörleri atla (Skip bad sectors)</system:String>
+    <system:String x:Key="OptAlignPartitions">Bölümleri hizala (SSD optimize)</system:String>
+    <system:String x:Key="LabelBackupPreviewTitle">KURTARILACAK DOSYALAR ÖNİZLEMESİ</system:String>
+    <system:String x:Key="BtnStartBackup">YEDEKLEMEYİ BAŞLAT</system:String>
+    <system:String x:Key="BtnPreviewFiles">DOSYALARI TARA VE ÖNİZLE</system:String>
+    <system:String x:Key="BtnGoBack">GERİ DÖN</system:String>
 </ResourceDictionary>

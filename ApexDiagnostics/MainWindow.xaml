@@ -4,8 +4,7 @@
         xmlns:vm="clr-namespace:ApexDiagnostics.ViewModels"
         xmlns:views="clr-namespace:ApexDiagnostics.Views"
         Title="Apex Hardware Diagnostic Suite" Height="768" Width="1024"
-        WindowStartupLocation="CenterScreen" Background="{StaticResource BgPrimaryBrush}"
-        Icon="Assets/apex_icon.png">
+        WindowStartupLocation="CenterScreen" Background="{StaticResource BgPrimaryBrush}">
 
     <Window.DataContext>
         <vm:MainViewModel/>

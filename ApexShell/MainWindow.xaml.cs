@@ -14,10 +14,24 @@ namespace ApexShell
         public MainWindow()
         {
             InitializeComponent();
+            SetWindowIcon();
             _timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _timer.Tick += (s, e) => ClockText.Text = DateTime.Now.ToString("hh:mm:ss tt  MMM dd");
             _timer.Start();
             ClockText.Text = DateTime.Now.ToString("hh:mm:ss tt  MMM dd");
+        }
+
+        private void SetWindowIcon()
+        {
+            try
+            {
+                var iconUri = new Uri("pack://application:,,,/ApexShell;component/apex_icon.png", UriKind.Absolute);
+                Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+            }
+            catch
+            {
+                // Fallback gracefully without throwing startup exceptions in WinPE
+            }
         }
 
         private void StartButton_Click(object sender, RoutedEventArgs e)

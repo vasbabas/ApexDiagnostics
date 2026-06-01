@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using ApexDiagnostics.Helpers;
 using ApexDiagnostics.Core;
 
@@ -22,8 +24,43 @@ namespace ApexDiagnostics.ViewModels
         public string Color => IsDirectory ? "#58A6FF" : "#8B949E";
     }
 
+    public class BackupSelectionItem : ViewModelBase
+    {
+        private bool _isSelected = true;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+        public string Name { get; set; } = "";
+        public string FullPath { get; set; } = "";
+        public bool IsDirectory { get; set; }
+        public string Icon => IsDirectory ? "📁" : "📄";
+    }
+
+    public class BackupPreviewItem : ViewModelBase
+    {
+        public string Name { get; set; } = "";
+        public string SourcePath { get; set; } = "";
+        private string _sizeInfo = "Hesaplanıyor...";
+        public string SizeInfo
+        {
+            get => _sizeInfo;
+            set => SetProperty(ref _sizeInfo, value);
+        }
+        public string Icon => Name.Contains("Kimlik") || Name.Contains("Cred") ? "🔑" : "📁";
+    }
+
     public class ExplorerViewModel : ViewModelBase
     {
+        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern int CredBackupCredentials(
+            IntPtr token,
+            string targetFilePath,
+            string password,
+            int flags
+        );
+
         private readonly TelemetryManager _telemetry;
         private readonly object _logLock = new();
         private readonly List<string> _pendingLogs = new();
@@ -153,6 +190,21 @@ namespace ApexDiagnostics.ViewModels
             set => SetProperty(ref _backupRootCustomFolders, value);
         }
 
+        private bool _isPreviewVisible;
+        public bool IsPreviewVisible
+        {
+            get => _isPreviewVisible;
+            set
+            {
+                if (SetProperty(ref _isPreviewVisible, value))
+                {
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        public ObservableCollection<BackupPreviewItem> PreviewItems { get; } = new();
+
         private string _backupStatus = "Ready to start...";
         public string BackupStatus
         {
@@ -172,6 +224,7 @@ namespace ApexDiagnostics.ViewModels
         public ObservableCollection<string> Drives { get; } = new();
         public ObservableCollection<FileItem> Items { get; } = new();
         public ObservableCollection<string> UserProfiles { get; } = new();
+        public ObservableCollection<BackupSelectionItem> CustomItemsToBackup { get; } = new();
 
         public ICommand NavigateUpCommand { get; }
         public ICommand NavigateToFolderCommand { get; }
@@ -185,6 +238,8 @@ namespace ApexDiagnostics.ViewModels
         public ICommand StartWizardBackupCommand { get; }
         public ICommand PauseBackupCommand { get; }
         public ICommand StopBackupCommand { get; }
+        public ICommand ShowPreviewCommand { get; }
+        public ICommand CancelPreviewCommand { get; }
 
         public ExplorerViewModel(TelemetryManager telemetry)
         {
@@ -203,6 +258,8 @@ namespace ApexDiagnostics.ViewModels
             StartWizardBackupCommand = new RelayCommand(ExecuteStartWizardBackup, () => !IsBackingUp);
             PauseBackupCommand = new RelayCommand(ExecutePauseBackup, () => IsBackingUp);
             StopBackupCommand = new RelayCommand(ExecuteStopBackup, () => IsBackingUp);
+            ShowPreviewCommand = new RelayCommand(ExecuteShowPreview, () => !IsBackingUp);
+            CancelPreviewCommand = new RelayCommand(() => IsPreviewVisible = false, () => !IsBackingUp);
 
             RefreshDrives();
         }
@@ -268,7 +325,7 @@ namespace ApexDiagnostics.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Access Denied / Read Error:\n{ex.Message}", "Explorer Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Erişim Reddedildi / Okuma Hatası:\n{ex.Message}", "Dosya Yöneticisi Hatası", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -278,6 +335,44 @@ namespace ApexDiagnostics.ViewModels
             if (bytes >= 1048576) return $"{(bytes / 1048576.0):F1} MB";
             if (bytes >= 1024) return $"{(bytes / 1024.0):F1} KB";
             return $"{bytes} B";
+        }
+
+        private long GetDirectorySize(string path)
+        {
+            long size = 0;
+            try
+            {
+                var files = Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        var fi = new FileInfo(file);
+                        size += fi.Length;
+                    }
+                    catch { }
+                }
+            }
+            catch
+            {
+                try
+                {
+                    foreach (var file in Directory.GetFiles(path))
+                    {
+                        try
+                        {
+                            size += new FileInfo(file).Length;
+                        }
+                        catch { }
+                    }
+                    foreach (var dir in Directory.GetDirectories(path))
+                    {
+                        size += GetDirectorySize(dir);
+                    }
+                }
+                catch { }
+            }
+            return size;
         }
 
         private bool CanNavigateUp()
@@ -331,11 +426,11 @@ namespace ApexDiagnostics.ViewModels
                 }
 
                 LoadDirectory(CurrentDirectory);
-                MessageBox.Show("Transfer completed successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Aktarım başarıyla tamamlandı!", "Başarılı", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Paste failed:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Yapıştırma başarısız:\n{ex.Message}", "Hata", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -360,11 +455,11 @@ namespace ApexDiagnostics.ViewModels
                     {
                         File.Copy(file, destFile, true);
                         _copiedFilesCount++;
-                        LogAndStatusUpdate($"[+] Rescued: {name}", $"[{_copiedFilesCount} files rescued] Copying: {name}");
+                        LogAndStatusUpdate($"[+] Kurtarıldı: {name}", $"[{_copiedFilesCount} dosya kurtarıldı] Kopyalanıyor: {name}");
                     }
                     catch (Exception ex)
                     {
-                        LogAndStatusUpdate($"[!] File Error ({name}): {ex.Message}", $"[{_copiedFilesCount} files rescued] Copying: {name}");
+                        LogAndStatusUpdate($"[!] Dosya Hatası ({name}): {ex.Message}", $"[{_copiedFilesCount} dosya kurtarıldı] Kopyalanıyor: {name}");
                     }
                 }
                 foreach (string folder in Directory.GetDirectories(source))
@@ -372,13 +467,13 @@ namespace ApexDiagnostics.ViewModels
                     if (IsBackupCancelled) return;
                     string name = Path.GetFileName(folder);
                     string destFolder = Path.Combine(dest, name);
-                    LogAndStatusUpdate($"[📁] Directory: {name}", $"[{_copiedFilesCount} files rescued] Entering folder: {name}");
+                    LogAndStatusUpdate($"[📁] Klasör: {name}", $"[{_copiedFilesCount} dosya kurtarıldı] Klasöre giriliyor: {name}");
                     CopyDirectory(folder, destFolder);
                 }
             }
             catch (Exception ex)
             {
-                LogAndStatusUpdate($"[!] Dir Error: {ex.Message}", $"[{_copiedFilesCount} files rescued] Error in folder: {Path.GetFileName(source)}");
+                LogAndStatusUpdate($"[!] Klasör Hatası: {ex.Message}", $"[{_copiedFilesCount} dosya kurtarıldı] Klasörde hata: {Path.GetFileName(source)}");
             }
         }
 
@@ -386,7 +481,7 @@ namespace ApexDiagnostics.ViewModels
         {
             if (SelectedItem == null) return;
 
-            var result = MessageBox.Show($"Are you sure you want to permanently delete:\n{SelectedItem.Name}?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var result = MessageBox.Show($"Aşağıdaki öğeyi kalıcı olarak silmek istediğinizden emin misiniz:\n{SelectedItem.Name}?", "Silmeyi Onayla", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (result == MessageBoxResult.Yes)
             {
                 try
@@ -403,7 +498,7 @@ namespace ApexDiagnostics.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Delete failed:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Silme başarısız:\n{ex.Message}", "Hata", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
@@ -426,7 +521,7 @@ namespace ApexDiagnostics.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Could not create folder:\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Klasör oluşturulamadı:\n{ex.Message}", "Hata", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -451,7 +546,7 @@ namespace ApexDiagnostics.ViewModels
 
             if (UserProfiles.Count == 0)
             {
-                MessageBox.Show("No user profiles found in C:\\Users! Make sure target OS has user profiles.", "No Profiles Found", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("C:\\Users klasöründe kullanıcı profili bulunamadı! Hedef sistemin kullanıcı profillerine sahip olduğundan emin olun.", "Profil Bulunamadı", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -468,9 +563,200 @@ namespace ApexDiagnostics.ViewModels
                 SelectedBackupDest = "";
             }
 
+            // Populate custom folders checklist
+            CustomItemsToBackup.Clear();
+            string[] standardSystemDirs = {
+                "windows", "program files", "program files (x86)", "programdata", "users",
+                "system volume information", "recovery", "$recycle.bin", "$winreagent",
+                "documents and settings", "perflogs", "esd", "$windows.~bt", "$windows.~ws",
+                "boot", "efi"
+            };
+            string[] standardSystemFiles = {
+                "pagefile.sys", "hiberfil.sys", "swapfile.sys", "dumpstack.log.tmp",
+                "bootmgr", "bootsect.bak", "ntldr"
+            };
+
+            try
+            {
+                if (Directory.Exists(@"C:\"))
+                {
+                    foreach (var dir in Directory.GetDirectories(@"C:\"))
+                    {
+                        string name = Path.GetFileName(dir);
+                        string nameLower = name.ToLowerInvariant();
+                        if (!standardSystemDirs.Contains(nameLower))
+                        {
+                            CustomItemsToBackup.Add(new BackupSelectionItem
+                            {
+                                Name = name,
+                                FullPath = dir,
+                                IsDirectory = true,
+                                IsSelected = true
+                            });
+                        }
+                    }
+
+                    foreach (var file in Directory.GetFiles(@"C:\"))
+                    {
+                        string name = Path.GetFileName(file);
+                        string nameLower = name.ToLowerInvariant();
+                        if (!standardSystemFiles.Contains(nameLower))
+                        {
+                            CustomItemsToBackup.Add(new BackupSelectionItem
+                            {
+                                Name = name,
+                                FullPath = file,
+                                IsDirectory = false,
+                                IsSelected = true
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error listing C:\\: {ex.Message}", "WARN");
+            }
+
             BackupStatus = "Ready to start...";
             BackupProgress = 0;
+            IsPreviewVisible = false;
             IsBackupWizardVisible = true;
+        }
+
+        private void ExecuteShowPreview()
+        {
+            if (string.IsNullOrEmpty(SelectedUserProfile))
+            {
+                MessageBox.Show("Lütfen yedeklenecek bir kullanıcı profili seçin!", "Doğrulama Hatası", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(SelectedBackupDest) || !Directory.Exists(SelectedBackupDest))
+            {
+                MessageBox.Show("Lütfen geçerli bir yedekleme hedef klasörü seçin!", "Doğrulama Hatası", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            PreviewItems.Clear();
+
+            string sourceUserDir = Path.Combine(@"C:\Users", SelectedUserProfile);
+
+            var folderMappings = new Dictionary<string, string[]>
+            {
+                { "Masaüstü",   new[] { "Desktop",   "Masaüstü"   } },
+                { "Belgeler",   new[] { "Documents", "Belgeler",  "My Documents" } },
+                { "Resimler",   new[] { "Pictures",  "Resimler",  "My Pictures"  } },
+                { "İndirilenler", new[] { "Downloads", "İndirilenler" } },
+                { "Müzik",      new[] { "Music",     "Müzik",     "My Music"     } },
+                { "Videolar",   new[] { "Videos",    "Videolar",  "My Videos"    } }
+            };
+
+            foreach (var kvp in folderMappings)
+            {
+                string folderLabel = kvp.Key;
+                foreach (var variant in kvp.Value)
+                {
+                    string path = Path.Combine(sourceUserDir, variant);
+                    if (Directory.Exists(path))
+                    {
+                        PreviewItems.Add(new BackupPreviewItem
+                        {
+                            Name = folderLabel,
+                            SourcePath = path,
+                            SizeInfo = "Hesaplanıyor..."
+                        });
+                        break;
+                    }
+                }
+            }
+
+            if (BackupRootCustomFolders)
+            {
+                var selectedItems = CustomItemsToBackup.Where(item => item.IsSelected).ToList();
+                foreach (var item in selectedItems)
+                {
+                    PreviewItems.Add(new BackupPreviewItem
+                    {
+                        Name = item.Name,
+                        SourcePath = item.FullPath,
+                        SizeInfo = "Hesaplanıyor..."
+                    });
+                }
+            }
+
+            if (BackupCredentials)
+            {
+                PreviewItems.Add(new BackupPreviewItem
+                {
+                    Name = "Windows Kimlik Bilgileri (.crd)",
+                    SourcePath = "Win32 API (Live Credentials)",
+                    SizeInfo = "API Live"
+                });
+            }
+
+            IsPreviewVisible = true;
+
+            System.Threading.Tasks.Task.Run(CalculatePreviewSizesAsync);
+        }
+
+        private async System.Threading.Tasks.Task CalculatePreviewSizesAsync()
+        {
+            foreach (var item in PreviewItems.ToList())
+            {
+                if (item.SourcePath == "Win32 API (Live Credentials)")
+                {
+                    continue;
+                }
+
+                if (Directory.Exists(item.SourcePath))
+                {
+                    string path = item.SourcePath;
+                    await System.Threading.Tasks.Task.Run(() =>
+                    {
+                        try
+                        {
+                            long size = GetDirectorySize(path);
+                            App.Current.Dispatcher.Invoke(() =>
+                            {
+                                item.SizeInfo = FormatFileSize(size);
+                            });
+                        }
+                        catch
+                        {
+                            App.Current.Dispatcher.Invoke(() =>
+                            {
+                                item.SizeInfo = "Erişilemedi";
+                            });
+                        }
+                    });
+                }
+                else if (File.Exists(item.SourcePath))
+                {
+                    try
+                    {
+                        var fi = new FileInfo(item.SourcePath);
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            item.SizeInfo = FormatFileSize(fi.Length);
+                        });
+                    }
+                    catch
+                    {
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            item.SizeInfo = "Erişilemedi";
+                        });
+                    }
+                }
+                else
+                {
+                    App.Current.Dispatcher.Invoke(() =>
+                    {
+                        item.SizeInfo = "Mevcut Değil";
+                    });
+                }
+            }
         }
 
         private void ExecuteBrowseBackupDest()
@@ -491,16 +777,17 @@ namespace ApexDiagnostics.ViewModels
         {
             if (string.IsNullOrEmpty(SelectedUserProfile))
             {
-                MessageBox.Show("Please select a user profile to backup!", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Lütfen yedeklenecek bir kullanıcı profili seçin!", "Doğrulama Hatası", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             if (string.IsNullOrEmpty(SelectedBackupDest) || !Directory.Exists(SelectedBackupDest))
             {
-                MessageBox.Show("Please select a valid backup destination directory!", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Lütfen geçerli bir yedekleme hedef klasörü seçin!", "Doğrulama Hatası", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
+            IsPreviewVisible = false;
             IsBackingUp = true;
             IsBackupPaused = false;
             IsBackupCancelled = false;
@@ -524,88 +811,91 @@ namespace ApexDiagnostics.ViewModels
                 try
                 {
                     string sourceUserDir = Path.Combine(@"C:\Users", SelectedUserProfile);
-                    string targetDir = Path.Combine(SelectedBackupDest, $"Backup_{SelectedUserProfile}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
+                    string targetDir = Path.Combine(SelectedBackupDest, $"Yedek_{SelectedUserProfile}_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}");
                     Directory.CreateDirectory(targetDir);
                     
-                    LogAndStatusUpdate($"[SYSTEM] Rescue folder created: {Path.GetFileName(targetDir)}", "Preparing data recovery session...", true);
+                    LogAndStatusUpdate($"[SİSTEM] Yedekleme klasörü oluşturuldu: {Path.GetFileName(targetDir)}", "Veri kurtarma oturumu hazırlanıyor...", true);
 
-                    string[] subFolders = { "Desktop", "Documents", "Pictures", "Downloads" };
-                    double stepWeight = 100.0 / (subFolders.Length + (BackupCredentials ? 1 : 0) + (BackupRootCustomFolders ? 1 : 0));
-
-                    foreach (var folder in subFolders)
+                    // Her klasör için bilinen tüm yerel isimler: İngilizce, Türkçe
+                    var folderMappings = new Dictionary<string, string[]>
                     {
-                        LogAndStatusUpdate(null, $"Rescuing user {folder} folder...", true);
+                        { "Masaüstü",   new[] { "Desktop",   "Masaüstü"   } },
+                        { "Belgeler",   new[] { "Documents", "Belgeler",  "My Documents" } },
+                        { "Resimler",   new[] { "Pictures",  "Resimler",  "My Pictures"  } },
+                        { "İndirilenler", new[] { "Downloads", "İndirilenler" } },
+                        { "Müzik",      new[] { "Music",     "Müzik",     "My Music"     } },
+                        { "Videolar",   new[] { "Videos",    "Videolar",  "My Videos"    } }
+                    };
+                    double stepWeight = 100.0 / (folderMappings.Count + (BackupCredentials ? 1 : 0) + (BackupRootCustomFolders ? 1 : 0));
+
+                    foreach (var kvp in folderMappings)
+                    {
+                        string folderLabel = kvp.Key;       // Türkçe çıktı etiketi
+                        string[] folderVariants = kvp.Value;
                         
-                        string src = Path.Combine(sourceUserDir, folder);
-                        string dst = Path.Combine(targetDir, folder);
+                        LogAndStatusUpdate(null, $"Kullanıcı '{folderLabel}' klasörü kurtarılıyor...", true);
                         
-                        if (Directory.Exists(src))
+                        string dst = Path.Combine(targetDir, folderLabel);
+                        bool copiedAny = false;
+
+                        foreach (var variant in folderVariants)
                         {
-                            CopyDirectory(src, dst);
+                            string path = Path.Combine(sourceUserDir, variant);
+                            if (Directory.Exists(path))
+                            {
+                                LogAndStatusUpdate($"[+] '{folderLabel}' için kaynak bulundu: {variant}", $"'{folderLabel}' kopyalanıyor...", true);
+                                CopyDirectory(path, dst);
+                                copiedAny = true;
+                            }
                         }
 
-                        LogAndStatusUpdate(null, $"Completed user {folder} folder.", true);
+                        if (copiedAny)
+                        {
+                            LogAndStatusUpdate($"[+] '{folderLabel}' klasörü başarıyla kurtarıldı → {dst}", $"'{folderLabel}' tamamlandı.", true);
+                        }
+                        else
+                        {
+                            LogAndStatusUpdate($"[-] '{folderLabel}' klasörü bulunamadı veya boş, atlanıyor.", $"'{folderLabel}' bulunamadı — atlandı.", true);
+                        }
+
                         App.Current.Dispatcher.Invoke(() => BackupProgress += stepWeight);
                     }
 
                     if (BackupRootCustomFolders)
                     {
-                        LogAndStatusUpdate(null, "Scanning C:\\ root for custom folders...", true);
+                        LogAndStatusUpdate(null, "Seçili C:\\ klasörleri kurtarılıyor...", true);
                         
-                        string[] standardSystemDirs = {
-                            "windows", "program files", "program files (x86)", "programdata", "users",
-                            "system volume information", "recovery", "$recycle.bin", "$winreagent",
-                            "documents and settings", "perflogs", "esd", "$windows.~bt", "$windows.~ws",
-                            "boot", "efi"
-                        };
-
                         try
                         {
-                            string targetRootRescueDir = Path.Combine(targetDir, "C_Root_Custom_Folders");
+                            string targetRootRescueDir = Path.Combine(targetDir, "C_Kök_Klasörler");
                             bool foundCustom = false;
 
-                            if (Directory.Exists(@"C:\"))
+                            var selectedItems = CustomItemsToBackup.Where(item => item.IsSelected).ToList();
+
+                            foreach (var item in selectedItems)
                             {
-                                foreach (var dir in Directory.GetDirectories(@"C:\"))
+                                if (!foundCustom)
                                 {
-                                    string name = Path.GetFileName(dir);
-                                    string nameLower = name.ToLowerInvariant();
-
-                                    if (!standardSystemDirs.Contains(nameLower))
-                                    {
-                                        if (!foundCustom)
-                                        {
-                                            Directory.CreateDirectory(targetRootRescueDir);
-                                            foundCustom = true;
-                                        }
-
-                                        LogAndStatusUpdate(null, $"Rescuing C:\\{name} custom folder...", true);
-                                        CopyDirectory(dir, Path.Combine(targetRootRescueDir, name));
-                                    }
+                                    Directory.CreateDirectory(targetRootRescueDir);
+                                    foundCustom = true;
                                 }
 
-                                string[] standardSystemFiles = {
-                                    "pagefile.sys", "hiberfil.sys", "swapfile.sys", "dumpstack.log.tmp",
-                                    "bootmgr", "bootsect.bak", "ntldr"
-                                };
-
-                                foreach (var file in Directory.GetFiles(@"C:\"))
+                                if (item.IsDirectory)
                                 {
-                                    string name = Path.GetFileName(file);
-                                    string nameLower = name.ToLowerInvariant();
-
-                                    if (!standardSystemFiles.Contains(nameLower))
+                                    if (Directory.Exists(item.FullPath))
                                     {
-                                        if (!foundCustom)
-                                        {
-                                            Directory.CreateDirectory(targetRootRescueDir);
-                                            foundCustom = true;
-                                        }
-
-                                        LogAndStatusUpdate($"[+] Rescued loose file: {name}", $"Rescuing loose file C:\\{name}...");
+                                        LogAndStatusUpdate(null, $"C:\\{item.Name} klasörü kurtarılıyor...", true);
+                                        CopyDirectory(item.FullPath, Path.Combine(targetRootRescueDir, item.Name));
+                                    }
+                                }
+                                else
+                                {
+                                    if (File.Exists(item.FullPath))
+                                    {
+                                        LogAndStatusUpdate($"[+] Dosya kurtarıldı: {item.Name}", $"C:\\{item.Name} dosyası kurtarılıyor...");
                                         try
                                         {
-                                            File.Copy(file, Path.Combine(targetRootRescueDir, name), true);
+                                            File.Copy(item.FullPath, Path.Combine(targetRootRescueDir, item.Name), true);
                                         }
                                         catch { }
                                     }
@@ -614,78 +904,70 @@ namespace ApexDiagnostics.ViewModels
                         }
                         catch (Exception ex)
                         {
-                            Logger.Log($"Error scanning C:\\ root custom folders: {ex.Message}", "WARN");
+                            Logger.Log($"C:\\ kök klasörleri kopyalanırken hata: {ex.Message}", "WARN");
                         }
 
-                        LogAndStatusUpdate(null, "Completed scanning C:\\ root custom folders.", true);
+                        LogAndStatusUpdate(null, "C:\\ kök klasörleri başarıyla kurtarıldı.", true);
                         App.Current.Dispatcher.Invoke(() => BackupProgress += stepWeight);
                     }
 
                     if (BackupCredentials)
                     {
-                        LogAndStatusUpdate(null, "Backing up Windows Credentials & DPAPI Keys...", true);
-                        string credentialsBackupPath = Path.Combine(targetDir, "Windows_Credentials");
-                        Directory.CreateDirectory(credentialsBackupPath);
-
-                        // 1. Copy Offline Vaults, Credentials, and DPAPI Protect directories
-                        string localCreds = Path.Combine(sourceUserDir, @"AppData\Local\Microsoft\Credentials");
-                        string roamCreds = Path.Combine(sourceUserDir, @"AppData\Roaming\Microsoft\Credentials");
-                        string roamProtect = Path.Combine(sourceUserDir, @"AppData\Roaming\Microsoft\Protect");
-                        string roamVault = Path.Combine(sourceUserDir, @"AppData\Roaming\Microsoft\Vault");
-
-                        if (Directory.Exists(localCreds)) CopyDirectory(localCreds, Path.Combine(credentialsBackupPath, "Local_Credentials"));
-                        if (Directory.Exists(roamCreds)) CopyDirectory(roamCreds, Path.Combine(credentialsBackupPath, "Roaming_Credentials"));
-                        if (Directory.Exists(roamProtect)) CopyDirectory(roamProtect, Path.Combine(credentialsBackupPath, "Roaming_Protect"));
-                        if (Directory.Exists(roamVault)) CopyDirectory(roamVault, Path.Combine(credentialsBackupPath, "Roaming_Vault"));
-
-                        // 2. Export Live Credentials using vaultcmd if running on active OS (technician utility)
+                        LogAndStatusUpdate(null, "Windows Kimlik Bilgileri yedekleniyor...", true);
                         try
                         {
-                            string backupFile = Path.Combine(credentialsBackupPath, "vault_backup.crdu");
-                            var psi = new ProcessStartInfo("vaultcmd.exe", $"/backup:\"{backupFile}\" /password:123")
+                            string backupFile = Path.Combine(targetDir, "credentials.crd");
+                            LogAndStatusUpdate(null, "Canlı kimlik bilgileri Win32 API ile dışa aktarılıyor...", true);
+                            int res = CredBackupCredentials(IntPtr.Zero, backupFile, "123", 0);
+                            if (res != 0)
                             {
-                                CreateNoWindow = true,
-                                UseShellExecute = false
-                            };
-                            var process = Process.Start(psi);
-                            process?.WaitForExit(3000);
+                                LogAndStatusUpdate($"[+] credentials.crd başarıyla oluşturuldu (şifre: '123')", "Kimlik bilgileri başarıyla aktarıldı.", true);
+                            }
+                            else
+                            {
+                                int err = Marshal.GetLastWin32Error();
+                                LogAndStatusUpdate($"[-] CredBackupCredentials API çağrısı hata verdi (Hata kodu: {res}, Win32 Hata Kodu: {err}).", "Kimlik bilgileri aktarılamadı.", true);
+                            }
                         }
-                        catch { /* Silent skip if running in offline PE mode */ }
+                        catch (Exception ex)
+                        {
+                            LogAndStatusUpdate($"[!] API Hatası: {ex.Message}.", "API hatası oluştu.", true);
+                        }
 
-                        LogAndStatusUpdate(null, "Windows Credentials backup complete.", true);
+                        LogAndStatusUpdate(null, "Windows Kimlik Bilgileri yedekleme tamamlandı.", true);
                         App.Current.Dispatcher.Invoke(() => BackupProgress = 100);
                     }
 
-                    // Flush any final logs remaining in buffer before completing
-                    LogAndStatusUpdate(null, IsBackupCancelled ? "Backup aborted." : "Backup completed successfully!", true);
+                    // Kalan tüm logları temizle
+                    LogAndStatusUpdate(null, IsBackupCancelled ? "Yedekleme iptal edildi." : "Yedekleme başarıyla tamamlandı!", true);
 
                     App.Current.Dispatcher.Invoke(() =>
                     {
                         IsBackingUp = false;
                         if (IsBackupCancelled)
                         {
-                            BackupStatus = "Backup aborted by user.";
-                            BackupLogs.Add("[SYSTEM] Backup process successfully aborted.");
-                            MessageBox.Show("Backup process has been aborted. Target folder contains incomplete data.", "Backup Aborted", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            BackupStatus = "Yedekleme kullanıcı tarafından iptal edildi.";
+                            BackupLogs.Add("[SİSTEM] Yedekleme işlemi başarıyla iptal edildi.");
+                            MessageBox.Show("Yedekleme işlemi iptal edildi. Hedef klasörde eksik veriler bulunabilir.", "Yedekleme İptal Edildi", MessageBoxButton.OK, MessageBoxImage.Warning);
                         }
                         else
                         {
-                            BackupStatus = "Backup completed successfully!";
+                            BackupStatus = "Yedekleme başarıyla tamamlandı!";
                             IsBackupWizardVisible = false;
-                            MessageBox.Show($"Selected user backup completed successfully!\nSaved to: {targetDir}", "Rescue Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show($"Seçili kullanıcı yedeği başarıyla tamamlandı!\nKayıt yeri: {targetDir}", "Kurtarma Tamamlandı", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     });
                 }
                 catch (Exception ex)
                 {
-                    // Flush logs in case of error
-                    LogAndStatusUpdate(null, $"Error: {ex.Message}", true);
+                    // Hata durumunda logları temizle
+                    LogAndStatusUpdate(null, $"Hata: {ex.Message}", true);
                     
                     App.Current.Dispatcher.Invoke(() =>
                     {
-                        BackupStatus = $"Error: {ex.Message}";
+                        BackupStatus = $"Hata: {ex.Message}";
                         IsBackingUp = false;
-                        MessageBox.Show($"Recovery encountered errors:\n{ex.Message}", "Recovery Incomplete", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"Kurtarma işlemi sırasında hata oluştu:\n{ex.Message}", "Kurtarma Tamamlanamadı", MessageBoxButton.OK, MessageBoxImage.Error);
                     });
                 }
             });
@@ -699,27 +981,27 @@ namespace ApexDiagnostics.ViewModels
                 if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
                 if (IsBackupPaused)
                 {
-                    BackupLogs.Add("[SYSTEM] Backup PAUSED by user.");
-                    BackupStatus = "Backup session paused...";
+                    BackupLogs.Add("[SİSTEM] Yedekleme DURAKLATıLDI.");
+                    BackupStatus = "Yedekleme oturumu duraklatıldı...";
                 }
                 else
                 {
-                    BackupLogs.Add("[SYSTEM] Backup RESUMED by user.");
-                    BackupStatus = "Resuming backup session...";
+                    BackupLogs.Add("[SİSTEM] Yedekleme DEVAM ETTİRİLDİ.");
+                    BackupStatus = "Yedekleme oturumu devam ediyor...";
                 }
             });
         }
 
         private void ExecuteStopBackup()
         {
-            var res = MessageBox.Show("Are you sure you want to stop and abort the active backup process?", "Abort Backup", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var res = MessageBox.Show("Aktif yedekleme işlemini durdurmak ve iptal etmek istediğinizden emin misiniz?", "Yedeklemeyi İptal Et", MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (res == MessageBoxResult.Yes)
             {
                 IsBackupCancelled = true;
                 App.Current.Dispatcher.Invoke(() =>
                 {
                     if (BackupLogs.Count > 150) BackupLogs.RemoveAt(0);
-                    BackupLogs.Add("[SYSTEM] Aborting backup process...");
+                    BackupLogs.Add("[SİSTEM] Yedekleme işlemi iptal ediliyor...");
                 });
             }
         }

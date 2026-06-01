@@ -134,6 +134,9 @@
     <system:String x:Key="WizOptRoot">Scan &amp; Rescue Custom Root Folders / Loose Files on C: drive</system:String>
     <system:String x:Key="BtnStartRescue">START RESCUE</system:String>
     <system:String x:Key="BtnCancel">CANCEL</system:String>
+    <system:String x:Key="BtnPause">PAUSE</system:String>
+    <system:String x:Key="BtnResume">RESUME</system:String>
+    <system:String x:Key="BtnStop">STOP</system:String>
     
     <!-- Disk Cloner -->
     <system:String x:Key="TitleClone">LOW-LEVEL DISK CLONER &amp; DUPLICATOR</system:String>
@@ -193,4 +196,18 @@
     <system:String x:Key="BtnClose">CLOSE</system:String>
     <system:String x:Key="BtnExportReport">EXPORT REPORT</system:String>
     <system:String x:Key="BtnRefresh">REFRESH</system:String>
+
+    <!-- New Clone & Backup Keys -->
+    <system:String x:Key="LabelCloneTypeSelect">CLONE TYPE SELECTION (MANDATORY)</system:String>
+    <system:String x:Key="OptFullDiskClone">Full Disk Clone</system:String>
+    <system:String x:Key="OptPartitionClone">Partition Clone</system:String>
+    <system:String x:Key="LabelExtraCloneOpts">ADDITIONAL CLONE OPTIONS</system:String>
+    <system:String x:Key="OptFitPartitions">Fit partitions to target disk (SSD/HDD - Mandatory)</system:String>
+    <system:String x:Key="OptSectorBySector">Sector-by-sector clone</system:String>
+    <system:String x:Key="OptSkipBadSectors">Skip bad sectors</system:String>
+    <system:String x:Key="OptAlignPartitions">Align partitions (SSD optimize)</system:String>
+    <system:String x:Key="LabelBackupPreviewTitle">RESCUED FILES PREVIEW</system:String>
+    <system:String x:Key="BtnStartBackup">START BACKUP</system:String>
+    <system:String x:Key="BtnPreviewFiles">SCAN &amp; PREVIEW FILES</system:String>
+    <system:String x:Key="BtnGoBack">GO BACK</system:String>
 </ResourceDictionary>

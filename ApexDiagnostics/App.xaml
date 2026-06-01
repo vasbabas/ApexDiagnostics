@@ -21,6 +21,7 @@
             <helpers:StartButtonVisibilityConverter x:Key="StartButtonVisibilityConverter"/>
             <helpers:StopButtonVisibilityConverter x:Key="StopButtonVisibilityConverter"/>
             <helpers:StringStartsWithConverter x:Key="StringStartsWithConverter"/>
+            <helpers:EqualityConverter x:Key="EqualityConverter"/>
             <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </Application.Resources>

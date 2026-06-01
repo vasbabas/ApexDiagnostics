@@ -22,11 +22,81 @@ namespace ApexDiagnostics.ViewModels
         public string DisplayName => $"Drive #{Index} - {Model} ({DisplaySize})";
     }
 
+    public class PartitionInfo : ViewModelBase
+    {
+        private bool _isSelected = true;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                if (SetProperty(ref _isSelected, value))
+                {
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+        public int Index { get; set; }
+        public string DeviceID { get; set; } = "";
+        public string VolumeLetter { get; set; } = "";
+        public string VolumeLabel { get; set; } = "";
+        public long SizeBytes { get; set; }
+        public long StartingOffset { get; set; }
+        public string DisplaySize => $"{SizeBytes / (1024.0 * 1024.0 * 1024.0):F2} GB";
+        public string DisplayName => $"Partition #{Index} ({VolumeLetter} {VolumeLabel}) - {DisplaySize}";
+    }
+
     public class CloneViewModel : ViewModelBase
     {
         private readonly TelemetryManager _telemetry;
 
         public ObservableCollection<DiskInfo> Disks { get; } = new();
+
+        private string _cloneType = "";
+        public string CloneType
+        {
+            get => _cloneType;
+            set
+            {
+                if (SetProperty(ref _cloneType, value))
+                {
+                    OnPropertyChanged(nameof(IsPartitionCloneSelected));
+                    CommandManager.InvalidateRequerySuggested();
+                }
+            }
+        }
+
+        public bool IsPartitionCloneSelected => _cloneType == "Partition";
+
+        private bool _fitPartitions = true;
+        public bool FitPartitions
+        {
+            get => _fitPartitions;
+            set => SetProperty(ref _fitPartitions, value);
+        }
+
+        private bool _sectorBySectorClone;
+        public bool SectorBySectorClone
+        {
+            get => _sectorBySectorClone;
+            set => SetProperty(ref _sectorBySectorClone, value);
+        }
+
+        private bool _skipBadSectors;
+        public bool SkipBadSectors
+        {
+            get => _skipBadSectors;
+            set => SetProperty(ref _skipBadSectors, value);
+        }
+
+        private bool _alignPartitions;
+        public bool AlignPartitions
+        {
+            get => _alignPartitions;
+            set => SetProperty(ref _alignPartitions, value);
+        }
+
+        public ObservableCollection<PartitionInfo> SourcePartitions { get; } = new();
 
         private DiskInfo? _selectedSource;
         public DiskInfo? SelectedSource
@@ -36,6 +106,7 @@ namespace ApexDiagnostics.ViewModels
             {
                 if (SetProperty(ref _selectedSource, value))
                 {
+                    LoadPartitions();
                     CommandManager.InvalidateRequerySuggested();
                 }
             }
@@ -193,7 +264,16 @@ namespace ApexDiagnostics.ViewModels
 
         private bool CanShowWarning()
         {
-            return SelectedSource != null && SelectedDest != null && SelectedSource.Index != SelectedDest.Index && !IsCloning;
+            if (SelectedSource == null || SelectedDest == null || SelectedSource.Index == SelectedDest.Index || IsCloning)
+                return false;
+
+            if (string.IsNullOrEmpty(CloneType))
+                return false;
+
+            if (CloneType == "Partition" && !SourcePartitions.Any(p => p.IsSelected))
+                return false;
+
+            return true;
         }
 
         private void ExecuteShowWarning()
@@ -225,9 +305,38 @@ namespace ApexDiagnostics.ViewModels
             {
                 SafeFileHandle? hSource = null;
                 SafeFileHandle? hDest = null;
+                var lockedVolumeHandles = new System.Collections.Generic.List<SafeFileHandle>();
                 
                 try
                 {
+                    // Dismount and lock all volumes on destination drive first to prevent ACCESS DENIED
+                    var destLetters = GetVolumeLettersForDisk(dstDisk.Index);
+                    foreach (var letter in destLetters)
+                    {
+                        string volumePath = $"\\\\.\\{letter}:";
+                        var hVol = CreateFile(volumePath, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, IntPtr.Zero, OPEN_EXISTING, 0, IntPtr.Zero);
+                        if (!hVol.IsInvalid)
+                        {
+                            uint bytesReturned;
+                            bool locked = DeviceIoControl(hVol, FSCTL_LOCK_VOLUME, IntPtr.Zero, 0, IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero);
+                            if (locked)
+                            {
+                                bool dismounted = DeviceIoControl(hVol, FSCTL_DISMOUNT_VOLUME, IntPtr.Zero, 0, IntPtr.Zero, 0, out bytesReturned, IntPtr.Zero);
+                                lockedVolumeHandles.Add(hVol);
+                                Logger.Log($"Successfully locked and dismounted volume {volumePath}", "INFO");
+                            }
+                            else
+                            {
+                                hVol.Dispose();
+                                Logger.Log($"Failed to lock volume {volumePath}. Error Code: {Marshal.GetLastWin32Error()}", "WARN");
+                            }
+                        }
+                        else
+                        {
+                            Logger.Log($"Could not open volume {volumePath} for locking. Error Code: {Marshal.GetLastWin32Error()}", "WARN");
+                        }
+                    }
+
                     // Create handle for physical drives
                     string srcPath = $"\\\\.\\PhysicalDrive{srcDisk.Index}";
                     string dstPath = $"\\\\.\\PhysicalDrive{dstDisk.Index}";
@@ -247,7 +356,16 @@ namespace ApexDiagnostics.ViewModels
                     using var fsSource = new FileStream(hSource, FileAccess.Read);
                     using var fsDest = new FileStream(hDest, FileAccess.Write);
 
-                    long totalBytes = srcDisk.SizeBytes;
+                    long totalBytes = 0;
+                    if (CloneType == "Full")
+                    {
+                        totalBytes = srcDisk.SizeBytes;
+                    }
+                    else
+                    {
+                        totalBytes = SourcePartitions.Where(p => p.IsSelected).Sum(p => p.SizeBytes);
+                    }
+
                     long bytesCloned = 0;
                     int bufferSize = 4 * 1024 * 1024; // 4MB buffer chunks for fast copying
                     byte[] buffer = new byte[bufferSize];
@@ -256,46 +374,162 @@ namespace ApexDiagnostics.ViewModels
                     long lastBytes = 0;
                     var speedTimer = System.Diagnostics.Stopwatch.StartNew();
 
-                    while (bytesCloned < totalBytes)
+                    if (CloneType == "Full")
                     {
-                        if (IsCloneCancelled) break;
-                        while (IsClonePaused && !IsCloneCancelled)
+                        while (bytesCloned < totalBytes)
                         {
-                            System.Threading.Thread.Sleep(100);
-                        }
-                        if (IsCloneCancelled) break;
-
-                        int bytesToRead = (int)Math.Min(bufferSize, totalBytes - bytesCloned);
-                        int bytesRead = fsSource.Read(buffer, 0, bytesToRead);
-                        if (bytesRead <= 0) break;
-
-                        fsDest.Write(buffer, 0, bytesRead);
-                        bytesCloned += bytesRead;
-
-                        // UI Telemetry updates every 150ms
-                        if (speedTimer.ElapsedMilliseconds > 150)
-                        {
-                            long elapsedMs = stopwatch.ElapsedMilliseconds;
-                            double currentSpeed = (bytesCloned - lastBytes) / (speedTimer.ElapsedMilliseconds / 1000.0) / (1024.0 * 1024.0);
-                            lastBytes = bytesCloned;
-                            speedTimer.Restart();
-
-                            double progressVal = (double)bytesCloned / totalBytes * 100.0;
-                            double averageSpeed = bytesCloned / (elapsedMs / 1000.0) / (1024.0 * 1024.0);
-
-                            long bytesRemaining = totalBytes - bytesCloned;
-                            double remainingSeconds = averageSpeed > 0 ? (bytesRemaining / (averageSpeed * 1024.0 * 1024.0)) : 0;
-                            TimeSpan t = TimeSpan.FromSeconds(remainingSeconds);
-                            string timeStr = t.TotalHours >= 1 ? $"{(int)t.TotalHours}h {t.Minutes}m" : $"{t.Minutes}m {t.Seconds}s";
-
-                            App.Current.Dispatcher.Invoke(() =>
+                            if (IsCloneCancelled) break;
+                            while (IsClonePaused && !IsCloneCancelled)
                             {
-                                Progress = progressVal;
-                                SpeedMBs = currentSpeed;
-                                TimeRemaining = timeStr;
-                                string clonedLabel = GetTranslation("LabelCloned", "Cloned");
-                                Status = $"{clonedLabel} {bytesCloned / (1024 * 1024 * 1024.0):F1} GB / {totalBytes / (1024 * 1024 * 1024.0):F1} GB...";
-                            });
+                                System.Threading.Thread.Sleep(100);
+                            }
+                            if (IsCloneCancelled) break;
+
+                            int bytesToRead = (int)Math.Min(bufferSize, totalBytes - bytesCloned);
+                            int bytesRead = 0;
+
+                            try
+                            {
+                                bytesRead = fsSource.Read(buffer, 0, bytesToRead);
+                            }
+                            catch (IOException)
+                            {
+                                if (SkipBadSectors)
+                                {
+                                    fsSource.Position = bytesCloned;
+                                    int sectorSize = 512;
+                                    byte[] sectorBuffer = new byte[sectorSize];
+                                    long blockBytesWritten = 0;
+
+                                    while (blockBytesWritten < bytesToRead)
+                                    {
+                                        if (IsCloneCancelled) break;
+                                        long currentTargetPos = bytesCloned + blockBytesWritten;
+                                        int toRead = (int)Math.Min(sectorSize, bytesToRead - blockBytesWritten);
+
+                                        try
+                                        {
+                                            fsSource.Position = currentTargetPos;
+                                            int read = fsSource.Read(sectorBuffer, 0, toRead);
+                                            if (read <= 0) Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                        }
+                                        catch
+                                        {
+                                            Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                        }
+
+                                        fsDest.Position = currentTargetPos;
+                                        fsDest.Write(sectorBuffer, 0, toRead);
+                                        blockBytesWritten += toRead;
+                                    }
+
+                                    bytesCloned += bytesToRead;
+                                    continue;
+                                }
+                                else
+                                {
+                                    throw;
+                                }
+                            }
+
+                            if (bytesRead <= 0) break;
+
+                            fsDest.Write(buffer, 0, bytesRead);
+                            bytesCloned += bytesRead;
+
+                            UpdateTelemetry(bytesCloned, totalBytes, stopwatch, speedTimer, ref lastBytes);
+                        }
+                    }
+                    else
+                    {
+                        var selectedParts = SourcePartitions.Where(p => p.IsSelected).OrderBy(p => p.StartingOffset).ToList();
+                        foreach (var part in selectedParts)
+                        {
+                            if (IsCloneCancelled) break;
+
+                            long partStartOffset = part.StartingOffset;
+                            long partTargetOffset = part.StartingOffset;
+
+                            if (AlignPartitions)
+                            {
+                                if (partTargetOffset % (1024 * 1024) != 0)
+                                {
+                                    partTargetOffset = ((partTargetOffset / (1024 * 1024)) + 1) * 1024 * 1024;
+                                }
+                            }
+
+                            fsSource.Position = partStartOffset;
+                            fsDest.Position = partTargetOffset;
+
+                            long partBytesCloned = 0;
+                            long partTotalBytes = part.SizeBytes;
+
+                            while (partBytesCloned < partTotalBytes)
+                            {
+                                if (IsCloneCancelled) break;
+                                while (IsClonePaused && !IsCloneCancelled)
+                                {
+                                    System.Threading.Thread.Sleep(100);
+                                }
+                                if (IsCloneCancelled) break;
+
+                                int bytesToRead = (int)Math.Min(bufferSize, partTotalBytes - partBytesCloned);
+                                int bytesRead = 0;
+
+                                try
+                                {
+                                    bytesRead = fsSource.Read(buffer, 0, bytesToRead);
+                                }
+                                catch (IOException)
+                                {
+                                    if (SkipBadSectors)
+                                    {
+                                        fsSource.Position = partStartOffset + partBytesCloned;
+                                        int sectorSize = 512;
+                                        byte[] sectorBuffer = new byte[sectorSize];
+                                        long blockBytesWritten = 0;
+
+                                        while (blockBytesWritten < bytesToRead)
+                                        {
+                                            if (IsCloneCancelled) break;
+                                            long currentSrcPos = partStartOffset + partBytesCloned + blockBytesWritten;
+                                            long currentDstPos = partTargetOffset + partBytesCloned + blockBytesWritten;
+                                            int toRead = (int)Math.Min(sectorSize, bytesToRead - blockBytesWritten);
+
+                                            try
+                                            {
+                                                fsSource.Position = currentSrcPos;
+                                                int read = fsSource.Read(sectorBuffer, 0, toRead);
+                                                if (read <= 0) Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                            }
+                                            catch
+                                            {
+                                                Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                            }
+
+                                            fsDest.Position = currentDstPos;
+                                            fsDest.Write(sectorBuffer, 0, toRead);
+                                            blockBytesWritten += toRead;
+                                        }
+
+                                        partBytesCloned += bytesToRead;
+                                        bytesCloned += bytesToRead;
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        throw;
+                                    }
+                                }
+
+                                if (bytesRead <= 0) break;
+
+                                fsDest.Write(buffer, 0, bytesRead);
+                                partBytesCloned += bytesRead;
+                                bytesCloned += bytesRead;
+
+                                UpdateTelemetry(bytesCloned, totalBytes, stopwatch, speedTimer, ref lastBytes);
+                            }
                         }
                     }
 
@@ -334,8 +568,195 @@ namespace ApexDiagnostics.ViewModels
                 {
                     hSource?.Dispose();
                     hDest?.Dispose();
+                    foreach (var hVol in lockedVolumeHandles)
+                    {
+                        hVol.Dispose();
+                    }
                 }
             });
+        }
+
+        private void UpdateTelemetry(long bytesCloned, long totalBytes, System.Diagnostics.Stopwatch stopwatch, System.Diagnostics.Stopwatch speedTimer, ref long lastBytes)
+        {
+            if (speedTimer.ElapsedMilliseconds > 150)
+            {
+                long elapsedMs = stopwatch.ElapsedMilliseconds;
+                double currentSpeed = (bytesCloned - lastBytes) / (speedTimer.ElapsedMilliseconds / 1000.0) / (1024.0 * 1024.0);
+                lastBytes = bytesCloned;
+                speedTimer.Restart();
+
+                double progressVal = (double)bytesCloned / totalBytes * 100.0;
+                double averageSpeed = bytesCloned / (elapsedMs / 1000.0) / (1024.0 * 1024.0);
+
+                long bytesRemaining = totalBytes - bytesCloned;
+                double remainingSeconds = averageSpeed > 0 ? (bytesRemaining / (averageSpeed * 1024.0 * 1024.0)) : 0;
+                TimeSpan t = TimeSpan.FromSeconds(remainingSeconds);
+                string timeStr = t.TotalHours >= 1 ? $"{(int)t.TotalHours}h {t.Minutes}m" : $"{t.Minutes}m {t.Seconds}s";
+
+                App.Current.Dispatcher.Invoke(() =>
+                {
+                    Progress = progressVal;
+                    SpeedMBs = currentSpeed;
+                    TimeRemaining = timeStr;
+                    string clonedLabel = GetTranslation("LabelCloned", "Cloned");
+                    Status = $"{clonedLabel} {bytesCloned / (1024 * 1024 * 1024.0):F1} GB / {totalBytes / (1024 * 1024 * 1024.0):F1} GB...";
+                });
+            }
+        }
+
+        private void LoadPartitions()
+        {
+            SourcePartitions.Clear();
+            if (SelectedSource == null) return;
+
+            int diskIndex = SelectedSource.Index;
+            var logicalMap = new System.Collections.Generic.Dictionary<string, string>();
+
+            try
+            {
+                using (var mapSearcher = new ManagementObjectSearcher("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition"))
+                {
+                    foreach (var mapping in mapSearcher.Get())
+                    {
+                        string antecedent = mapping["Antecedent"]?.ToString() ?? "";
+                        string dependent = mapping["Dependent"]?.ToString() ?? "";
+
+                        string partId = ExtractDeviceId(antecedent);
+                        string driveLetter = ExtractDeviceId(dependent);
+
+                        if (!string.IsNullOrEmpty(partId) && !string.IsNullOrEmpty(driveLetter))
+                        {
+                            logicalMap[partId] = driveLetter;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error mapping logical disks: {ex.Message}", "WARN");
+            }
+
+            try
+            {
+                using (var partSearcher = new ManagementObjectSearcher("SELECT DeviceID, Index, Size, StartingOffset FROM Win32_DiskPartition"))
+                {
+                    foreach (var partition in partSearcher.Get())
+                    {
+                        string deviceId = partition["DeviceID"]?.ToString() ?? "";
+                        if (deviceId.StartsWith($"Disk #{diskIndex},", StringComparison.OrdinalIgnoreCase))
+                        {
+                            int index = Convert.ToInt32(partition["Index"] ?? 0);
+                            long sizeBytes = Convert.ToInt64(partition["Size"] ?? 0);
+                            long startingOffset = Convert.ToInt64(partition["StartingOffset"] ?? 0);
+
+                            string volumeLetter = "";
+                            string volumeLabel = "";
+
+                            if (logicalMap.TryGetValue(deviceId, out var driveLetter))
+                            {
+                                volumeLetter = driveLetter;
+                                try
+                                {
+                                    var driveInfo = new DriveInfo(driveLetter);
+                                    if (driveInfo.IsReady)
+                                    {
+                                        volumeLabel = driveInfo.VolumeLabel;
+                                    }
+                                }
+                                catch { }
+                            }
+
+                            SourcePartitions.Add(new PartitionInfo
+                            {
+                                IsSelected = true,
+                                Index = index,
+                                DeviceID = deviceId,
+                                VolumeLetter = volumeLetter,
+                                VolumeLabel = volumeLabel,
+                                SizeBytes = sizeBytes,
+                                StartingOffset = startingOffset
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error reading partitions: {ex.Message}", "ERROR");
+            }
+        }
+
+        private string ExtractDeviceId(string wmiPath)
+        {
+            int idx = wmiPath.IndexOf("DeviceID=\"");
+            if (idx != -1)
+            {
+                int start = idx + "DeviceID=\"".Length;
+                int end = wmiPath.IndexOf("\"", start);
+                if (end != -1)
+                {
+                    return wmiPath.Substring(start, end - start);
+                }
+            }
+            return "";
+        }
+
+        private System.Collections.Generic.List<string> GetVolumeLettersForDisk(int diskIndex)
+        {
+            var letters = new System.Collections.Generic.List<string>();
+            var logicalMap = new System.Collections.Generic.Dictionary<string, string>();
+
+            try
+            {
+                using (var mapSearcher = new ManagementObjectSearcher("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition"))
+                {
+                    foreach (var mapping in mapSearcher.Get())
+                    {
+                        string antecedent = mapping["Antecedent"]?.ToString() ?? "";
+                        string dependent = mapping["Dependent"]?.ToString() ?? "";
+
+                        string partId = ExtractDeviceId(antecedent);
+                        string driveLetter = ExtractDeviceId(dependent);
+
+                        if (!string.IsNullOrEmpty(partId) && !string.IsNullOrEmpty(driveLetter))
+                        {
+                            logicalMap[partId] = driveLetter;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error mapping logical disks in GetVolumeLettersForDisk: {ex.Message}", "WARN");
+            }
+
+            try
+            {
+                using (var partSearcher = new ManagementObjectSearcher("SELECT DeviceID FROM Win32_DiskPartition"))
+                {
+                    foreach (var partition in partSearcher.Get())
+                    {
+                        string deviceId = partition["DeviceID"]?.ToString() ?? "";
+                        if (deviceId.StartsWith($"Disk #{diskIndex},", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (logicalMap.TryGetValue(deviceId, out var driveLetter))
+                            {
+                                string cleanLetter = driveLetter.Replace("\\", "").Replace(":", "").Trim();
+                                if (!string.IsNullOrEmpty(cleanLetter))
+                                {
+                                    letters.Add(cleanLetter);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error reading partitions for disk {diskIndex}: {ex.Message}", "ERROR");
+            }
+
+            return letters;
         }
 
         private void ExecutePauseClone()
@@ -364,10 +785,25 @@ namespace ApexDiagnostics.ViewModels
             uint dwFlagsAndAttributes,
             IntPtr hTemplateFile);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool DeviceIoControl(
+            SafeFileHandle hDevice,
+            uint dwIoControlCode,
+            IntPtr lpInBuffer,
+            uint nInBufferSize,
+            IntPtr lpOutBuffer,
+            uint nOutBufferSize,
+            out uint lpBytesReturned,
+            IntPtr lpOverlapped);
+
         private const uint GENERIC_READ = 0x80000000;
         private const uint GENERIC_WRITE = 0x40000000;
         private const uint FILE_SHARE_READ = 0x00000001;
         private const uint FILE_SHARE_WRITE = 0x00000002;
         private const uint OPEN_EXISTING = 3;
+
+        private const uint FSCTL_LOCK_VOLUME = 0x00090018;
+        private const uint FSCTL_DISMOUNT_VOLUME = 0x00090020;
     }
 }
