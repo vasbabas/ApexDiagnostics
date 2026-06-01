@@ -1,0 +1,58 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ "main" ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build & Publish ApexDiagnostics
+      run: dotnet publish ApexDiagnostics/ApexDiagnostics.csproj -c Release -r win-x64 --self-contained true -o ./Build/ApexDiagnostics
+
+    - name: Build & Publish ApexShell
+      run: dotnet publish ApexShell/ApexShell.csproj -c Release -r win-x64 --self-contained true -o ./Build/ApexShell
+
+    - name: Prepare Release Artifacts
+      run: |
+        mkdir Build/Publish
+        copy Build/ApexDiagnostics/ApexDiagnostics.exe Build/Publish/
+        copy Build/ApexShell/ApexShell.exe Build/Publish/
+        copy Explorer++.exe Build/Publish/
+        compress-archive -Path Build/Publish/* -DestinationPath Build/ApexDiagnostics-win-x64.zip
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ApexDiagnostics-win-x64
+        path: Build/ApexDiagnostics-win-x64.zip
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: Build/ApexDiagnostics-win-x64.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
