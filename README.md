@@ -25,6 +25,18 @@
   <a href="#-build--deployment">Build Guide</a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexDiagnostics.exe">
+    <img src="https://img.shields.io/badge/Doğrudan%20İndir-ApexDiagnostics.exe-blue?style=for-the-badge&logo=windows&logoColor=white&color=0078d4" alt="Download ApexDiagnostics.exe"/>
+  </a>
+  <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexShell.exe">
+    <img src="https://img.shields.io/badge/Doğrudan%20İndir-ApexShell.exe-purple?style=for-the-badge&logo=windows&logoColor=white&color=6f42c1" alt="Download ApexShell.exe"/>
+  </a>
+  <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexDiagnostics-win-x64.zip">
+    <img src="https://img.shields.io/badge/İndir-Tüm%20Dosyalar%20(ZIP)-green?style=for-the-badge&logo=archive&logoColor=white&color=2ea44f" alt="Download ZIP"/>
+  </a>
+</p>
+
 ---
 
 ## 💎 Project Philosophy & Design Language

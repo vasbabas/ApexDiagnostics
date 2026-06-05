@@ -194,6 +194,7 @@ namespace ApexDiagnostics.ViewModels
             { 
                 if (SelectedDisk != null && _diskStates.TryGetValue(SelectedDisk.Index, out var state))
                 {
+                    _dismissedErrorMessage = "";
                     Array.Clear(state.MapData, 0, state.MapData.Length);
                     state.Status = "SCANNING";
                     _engine.SelectedDriveNumber = SelectedDisk.Index;
@@ -212,6 +213,11 @@ namespace ApexDiagnostics.ViewModels
                 System.Windows.Input.CommandManager.InvalidateRequerySuggested();
             }, () => _engine.IsRunning);
             RefreshDisksCommand = new RelayCommand(LoadAvailableDisks);
+            ClearScanErrorCommand = new RelayCommand(() => 
+            {
+                _dismissedErrorMessage = ScanErrorMessage;
+                OnPropertyChanged(nameof(IsScanErrorActive));
+            });
 
             _uiTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
             _uiTimer.Tick += (s, e) => UpdateUI();
@@ -298,6 +304,11 @@ namespace ApexDiagnostics.ViewModels
         private string _diskDetails = "";
         public string DiskDetails { get => _diskDetails; set => SetProperty(ref _diskDetails, value); }
 
+        private string _dismissedErrorMessage = "";
+        public string ScanErrorMessage => _engine.ScanErrorMessage;
+        public bool IsScanErrorActive => !string.IsNullOrEmpty(ScanErrorMessage) && ScanErrorMessage != _dismissedErrorMessage;
+        public ICommand ClearScanErrorCommand { get; }
+
         private void LoadDiskDetails(DiskDriveInfo disk)
         {
             SmartStatus = disk.Status;
@@ -363,6 +374,8 @@ namespace ApexDiagnostics.ViewModels
             OnPropertyChanged(nameof(SectorRange));
             OnPropertyChanged(nameof(DiskCriticalTempC));
             OnPropertyChanged(nameof(MapData));
+            OnPropertyChanged(nameof(ScanErrorMessage));
+            OnPropertyChanged(nameof(IsScanErrorActive));
         }
 
         public void Cleanup()

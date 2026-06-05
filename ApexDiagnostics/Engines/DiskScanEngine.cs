@@ -74,6 +74,7 @@ namespace ApexDiagnostics.Engines
         public double MaxReadLatencyMs { get; private set; }
         public double AvgReadLatencyMs { get; private set; }
         public bool UsingDirectIO { get; private set; }
+        public string ScanErrorMessage { get; private set; } = "";
 
         private long _latencySum;
         private long _latencyCount;
@@ -82,6 +83,7 @@ namespace ApexDiagnostics.Engines
 
         protected override void OnStart(CancellationToken token)
         {
+            ScanErrorMessage = "";
             ScanComplete = false;
             BadSectors = 0; SlowSectors = 0; DelayedSectors = 0;
             WeakSectors = 0; TimeoutSectors = 0; ReadErrors = 0;
@@ -115,26 +117,35 @@ namespace ApexDiagnostics.Engines
             string path = $@"\\.\PhysicalDrive{SelectedDriveNumber}";
             CurrentDisk = $"PhysicalDrive{SelectedDriveNumber}";
 
-            for (CurrentPass = 1; CurrentPass <= TotalPasses; CurrentPass++)
+            try
             {
-                if (token.IsCancellationRequested) break;
-                Logger.Log($"Starting Pass {CurrentPass}/{TotalPasses} on {CurrentDisk}");
+                for (CurrentPass = 1; CurrentPass <= TotalPasses; CurrentPass++)
+                {
+                    if (token.IsCancellationRequested) break;
+                    Logger.Log($"Starting Pass {CurrentPass}/{TotalPasses} on {CurrentDisk}");
 
-                ScannedBytes = 0;
-                _latencySum = 0; _latencyCount = 0;
+                    ScannedBytes = 0;
+                    _latencySum = 0; _latencyCount = 0;
 
-                if (!TryScanWithDirectIO(path, token))
-                    TryScanWithFileStream(path, token);
+                    if (!TryScanWithDirectIO(path, token))
+                        TryScanWithFileStream(path, token);
 
-                Logger.Log($"Pass {CurrentPass} complete: Bad={BadSectors} Slow={SlowSectors} Delayed={DelayedSectors} Weak={WeakSectors} Timeout={TimeoutSectors}");
+                    Logger.Log($"Pass {CurrentPass} complete: Bad={BadSectors} Slow={SlowSectors} Delayed={DelayedSectors} Weak={WeakSectors} Timeout={TimeoutSectors}");
+                }
+
+                if (!token.IsCancellationRequested)
+                {
+                    ScanComplete = true;
+                    CurrentSectorRange = "DONE";
+                    EstimatedTimeRemaining = "00:00:00";
+                    Logger.Log($"Scan complete: {CurrentDisk} — Total bad sectors: {BadSectors}");
+                }
             }
-
-            if (!token.IsCancellationRequested)
+            catch (Exception ex)
             {
-                ScanComplete = true;
-                CurrentSectorRange = "DONE";
-                EstimatedTimeRemaining = "00:00:00";
-                Logger.Log($"Scan complete: {CurrentDisk} — Total bad sectors: {BadSectors}");
+                Logger.Log($"Scan failed: {ex.Message}", "ERROR");
+                ScanErrorMessage = ex.Message;
+                _isRunning = false;
             }
         }
 
@@ -164,6 +175,7 @@ namespace ApexDiagnostics.Engines
                 long position = 0;
                 var speedTimer = Stopwatch.StartNew();
                 var ioTimer = new Stopwatch();
+                int consecutiveErrors = 0;
 
                 while (position < diskSize && !token.IsCancellationRequested)
                 {
@@ -187,6 +199,7 @@ namespace ApexDiagnostics.Engines
                     {
                         ClassifySector(latencyMs, startSector, false);
                         position += bytesRead;
+                        consecutiveErrors = 0;
                     }
                     else
                     {
@@ -214,6 +227,15 @@ namespace ApexDiagnostics.Engines
                             ReadErrors++;
                             BadSectors += (toRead / 512);
                             OnSectorScanned?.Invoke(startSector * 512, 5); // 5 = Dark Red (Bad)
+                            consecutiveErrors++;
+                            if (consecutiveErrors >= 50)
+                            {
+                                throw new IOException("Too many consecutive read errors. Drive may have disconnected.");
+                            }
+                        }
+                        else
+                        {
+                            consecutiveErrors = 0;
                         }
                         position += toRead;
                     }

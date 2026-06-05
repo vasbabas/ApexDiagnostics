@@ -223,9 +223,26 @@
 
                     <!-- Large Progress Bar and Text -->
                     <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                        <!-- Persistent Error/Warning Banner -->
+                        <Border Background="#30F85149" BorderBrush="{StaticResource AccentRedBrush}" BorderThickness="1" CornerRadius="4" Padding="10" Margin="0,0,0,12"
+                                Visibility="{Binding IsCloneWarningActive, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding CloneWarningMessage}" Foreground="White" FontSize="11" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="✕" Command="{Binding ClearWarningMessageCommand}" Style="{StaticResource GhostButton}" Width="20" Height="20" Margin="10,0,0,0" VerticalAlignment="Center" Padding="0"/>
+                            </Grid>
+                        </Border>
+
                         <TextBlock Text="{Binding Status}" Foreground="White" FontSize="11" Margin="0,0,0,8" TextAlignment="Center" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                         <ProgressBar Value="{Binding Progress}" Height="18" Foreground="#FF17C3B2" Background="#20FFFFFF"/>
                         <TextBlock Text="{Binding Progress, StringFormat={}{0:F1}%}" Foreground="#FF17C3B2" FontWeight="Bold" FontSize="15" Margin="0,6,0,0" HorizontalAlignment="Center"/>
+
+                        <!-- Skipped sectors display -->
+                        <TextBlock Text="{Binding LocalizedSkippedSectorsLabel}" Foreground="{StaticResource AccentOrangeBrush}" FontWeight="SemiBold" FontSize="12" Margin="0,6,0,0" HorizontalAlignment="Center"
+                                   Visibility="{Binding IsSkippedBadSectorsVisible}"/>
                     </StackPanel>
 
                     <!-- Icon -->

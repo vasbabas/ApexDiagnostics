@@ -96,6 +96,39 @@ namespace ApexDiagnostics.ViewModels
             set => SetProperty(ref _alignPartitions, value);
         }
 
+        private long _skippedBadSectors;
+        public long SkippedBadSectors
+        {
+            get => _skippedBadSectors;
+            set
+            {
+                if (SetProperty(ref _skippedBadSectors, value))
+                {
+                    OnPropertyChanged(nameof(IsSkippedBadSectorsVisible));
+                    OnPropertyChanged(nameof(LocalizedSkippedSectorsLabel));
+                }
+            }
+        }
+
+        private string _cloneWarningMessage = "";
+        public string CloneWarningMessage
+        {
+            get => _cloneWarningMessage;
+            set
+            {
+                if (SetProperty(ref _cloneWarningMessage, value))
+                {
+                    OnPropertyChanged(nameof(IsCloneWarningActive));
+                }
+            }
+        }
+
+        public bool IsCloneWarningActive => !string.IsNullOrEmpty(_cloneWarningMessage);
+
+        public Visibility IsSkippedBadSectorsVisible => SkippedBadSectors > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        public string LocalizedSkippedSectorsLabel => string.Format(GetTranslation("CloneBadSectorsSkippedLabel", "Skipped Bad Sectors: {0}"), SkippedBadSectors);
+
         public ObservableCollection<PartitionInfo> SourcePartitions { get; } = new();
 
         private DiskInfo? _selectedSource;
@@ -212,6 +245,7 @@ namespace ApexDiagnostics.ViewModels
         public ICommand StartCloneCommand { get; }
         public ICommand PauseCloneCommand { get; }
         public ICommand StopCloneCommand { get; }
+        public ICommand ClearWarningMessageCommand { get; }
 
         public CloneViewModel(TelemetryManager telemetry)
         {
@@ -223,6 +257,7 @@ namespace ApexDiagnostics.ViewModels
             StartCloneCommand = new RelayCommand(ExecuteStartClone, CanStartClone);
             PauseCloneCommand = new RelayCommand(ExecutePauseClone, () => IsCloning);
             StopCloneCommand = new RelayCommand(ExecuteStopClone, () => IsCloning);
+            ClearWarningMessageCommand = new RelayCommand(() => CloneWarningMessage = "");
 
             Status = GetTranslation("CloneStatusSelect", "Select Source and Target drives to begin cloning.");
 
@@ -293,6 +328,8 @@ namespace ApexDiagnostics.ViewModels
             IsCloning = true;
             IsClonePaused = false;
             IsCloneCancelled = false;
+            SkippedBadSectors = 0;
+            CloneWarningMessage = "";
             Progress = 0;
             SpeedMBs = 0;
             TimeRemaining = GetTranslation("CloneStatusCalculating", "Calculating...");
@@ -400,6 +437,7 @@ namespace ApexDiagnostics.ViewModels
                                     int sectorSize = 512;
                                     byte[] sectorBuffer = new byte[sectorSize];
                                     long blockBytesWritten = 0;
+                                    int consecutiveBlockErrors = 0;
 
                                     while (blockBytesWritten < bytesToRead)
                                     {
@@ -411,11 +449,25 @@ namespace ApexDiagnostics.ViewModels
                                         {
                                             fsSource.Position = currentTargetPos;
                                             int read = fsSource.Read(sectorBuffer, 0, toRead);
-                                            if (read <= 0) Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                            if (read <= 0)
+                                            {
+                                                Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                                SkippedBadSectors++;
+                                            }
+                                            else
+                                            {
+                                                consecutiveBlockErrors = 0;
+                                            }
                                         }
                                         catch
                                         {
                                             Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                            SkippedBadSectors++;
+                                            consecutiveBlockErrors++;
+                                            if (consecutiveBlockErrors > 100)
+                                            {
+                                                throw new IOException(string.Format(GetTranslation("CloneStatusFailedTooManyBadSectors", "Cloning aborted: Too many consecutive bad sectors ({0}) encountered. The disk may be completely disconnected or failing."), consecutiveBlockErrors));
+                                            }
                                         }
 
                                         fsDest.Position = currentTargetPos;
@@ -488,6 +540,7 @@ namespace ApexDiagnostics.ViewModels
                                         int sectorSize = 512;
                                         byte[] sectorBuffer = new byte[sectorSize];
                                         long blockBytesWritten = 0;
+                                        int consecutiveBlockErrors = 0;
 
                                         while (blockBytesWritten < bytesToRead)
                                         {
@@ -500,11 +553,25 @@ namespace ApexDiagnostics.ViewModels
                                             {
                                                 fsSource.Position = currentSrcPos;
                                                 int read = fsSource.Read(sectorBuffer, 0, toRead);
-                                                if (read <= 0) Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                                if (read <= 0)
+                                                {
+                                                    Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                                    SkippedBadSectors++;
+                                                }
+                                                else
+                                                {
+                                                    consecutiveBlockErrors = 0;
+                                                }
                                             }
                                             catch
                                             {
                                                 Array.Clear(sectorBuffer, 0, sectorBuffer.Length);
+                                                SkippedBadSectors++;
+                                                consecutiveBlockErrors++;
+                                                if (consecutiveBlockErrors > 100)
+                                                {
+                                                    throw new IOException(string.Format(GetTranslation("CloneStatusFailedTooManyBadSectors", "Cloning aborted: Too many consecutive bad sectors ({0}) encountered. The disk may be completely disconnected or failing."), consecutiveBlockErrors));
+                                                }
                                             }
 
                                             fsDest.Position = currentDstPos;
@@ -545,7 +612,15 @@ namespace ApexDiagnostics.ViewModels
                         if (IsCloneCancelled)
                         {
                             Status = "Cloning session aborted by user.";
+                            CloneWarningMessage = "Cloning aborted: The target disk contains incomplete partition data.";
                             MessageBox.Show("Disk cloning has been aborted. The target disk contains incomplete partition data.", "Cloning Aborted", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+                        else if (SkippedBadSectors > 0)
+                        {
+                            string warningPattern = GetTranslation("CloneStatusCompletedWithWarnings", "Drive cloning completed with warnings. {0} bad sectors were skipped and zero-filled.");
+                            Status = string.Format(warningPattern, SkippedBadSectors);
+                            CloneWarningMessage = string.Format(warningPattern, SkippedBadSectors);
+                            MessageBox.Show($"Physical Drive #{srcDisk.Index} has been cloned to Drive #{dstDisk.Index}!\nTotal Time: {TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds):hh\\:mm\\:ss}\n\nWARNING: {SkippedBadSectors} bad sectors were skipped and zero-filled. Check your source disk health.", "Cloning Complete with Warnings", MessageBoxButton.OK, MessageBoxImage.Warning);
                         }
                         else
                         {
@@ -560,6 +635,7 @@ namespace ApexDiagnostics.ViewModels
                     App.Current.Dispatcher.Invoke(() =>
                     {
                         Status = $"Error: {ex.Message}";
+                        CloneWarningMessage = $"FATAL ERROR: {ex.Message}. Cloning aborted.";
                         IsCloning = false;
                         MessageBox.Show($"Cloning failed:\n{ex.Message}", "Cloning Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     });

@@ -210,4 +210,7 @@
     <system:String x:Key="BtnStartBackup">START BACKUP</system:String>
     <system:String x:Key="BtnPreviewFiles">SCAN &amp; PREVIEW FILES</system:String>
     <system:String x:Key="BtnGoBack">GO BACK</system:String>
+    <system:String x:Key="CloneStatusCompletedWithWarnings">Drive cloning completed with warnings. {0} bad sectors were skipped and zero-filled.</system:String>
+    <system:String x:Key="CloneStatusFailedTooManyBadSectors">Cloning aborted: Too many consecutive bad sectors ({0}) encountered. The disk may be completely disconnected or failing.</system:String>
+    <system:String x:Key="CloneBadSectorsSkippedLabel">Skipped Bad Sectors: {0}</system:String>
 </ResourceDictionary>
