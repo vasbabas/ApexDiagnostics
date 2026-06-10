@@ -43,6 +43,7 @@ namespace ApexDiagnostics.ViewModels
         private readonly SystemInfoViewModel _systemInfoVM;
         private readonly ExplorerViewModel _explorerVM;
         private readonly CloneViewModel _cloneVM;
+        private readonly PatchNotesViewModel _patchNotesVM;
 
         public MainViewModel()
         {
@@ -60,6 +61,7 @@ namespace ApexDiagnostics.ViewModels
             _systemInfoVM = new SystemInfoViewModel(_telemetry);
             _explorerVM = new ExplorerViewModel(_telemetry);
             _cloneVM = new CloneViewModel(_telemetry);
+            _patchNotesVM = new PatchNotesViewModel();
 
             NavigateCommand = new RelayCommand(ExecuteNavigate);
             DismissAlertCommand = new RelayCommand(() => IsAlertVisible = false);
@@ -81,6 +83,7 @@ namespace ApexDiagnostics.ViewModels
                     "SystemInfo" => _systemInfoVM,
                     "Explorer" => _explorerVM,
                     "Clone" => _cloneVM,
+                    "PatchNotes" => _patchNotesVM,
                     _ => CurrentView
                 };
             }

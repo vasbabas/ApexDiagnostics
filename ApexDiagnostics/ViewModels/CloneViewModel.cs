@@ -374,6 +374,9 @@ namespace ApexDiagnostics.ViewModels
                         }
                     }
 
+                    // Set destination disk offline first to prevent ACCESS DENIED
+                    SetDiskOfflineState(dstDisk.Index, true);
+
                     // Create handle for physical drives
                     string srcPath = $"\\\\.\\PhysicalDrive{srcDisk.Index}";
                     string dstPath = $"\\\\.\\PhysicalDrive{dstDisk.Index}";
@@ -648,6 +651,8 @@ namespace ApexDiagnostics.ViewModels
                     {
                         hVol.Dispose();
                     }
+                    // Bring destination disk back online
+                    SetDiskOfflineState(dstDisk.Index, false);
                 }
             });
         }
@@ -833,6 +838,61 @@ namespace ApexDiagnostics.ViewModels
             }
 
             return letters;
+        }
+
+        private void SetDiskOfflineState(int diskNumber, bool offline)
+        {
+            try
+            {
+                string scopePath = @"\\localhost\ROOT\Microsoft\Windows\Storage";
+                string query = $"SELECT * FROM MSFT_Disk WHERE Number = {diskNumber}";
+                using var searcher = new ManagementObjectSearcher(scopePath, query);
+                foreach (ManagementObject disk in searcher.Get())
+                {
+                    string methodName = offline ? "Offline" : "Online";
+                    disk.InvokeMethod(methodName, null);
+                    Logger.Log($"Disk {diskNumber} has been set to {methodName} via WMI.", "INFO");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to set disk {diskNumber} offline state to {offline} via WMI: {ex.Message}. Trying diskpart fallback...", "WARN");
+                SetDiskOfflineStateDiskpart(diskNumber, offline);
+            }
+        }
+
+        private void SetDiskOfflineStateDiskpart(int diskNumber, bool offline)
+        {
+            try
+            {
+                var cmd = offline ? "offline disk" : "online disk";
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "diskpart.exe",
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var process = System.Diagnostics.Process.Start(startInfo);
+                if (process != null)
+                {
+                    using (var writer = process.StandardInput)
+                    {
+                        writer.WriteLine($"select disk {diskNumber}");
+                        writer.WriteLine(cmd);
+                        writer.WriteLine("exit");
+                    }
+                    process.WaitForExit(10000);
+                    Logger.Log($"Disk {diskNumber} set to {cmd} via diskpart.", "INFO");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to set disk {diskNumber} offline state to {offline} via Diskpart: {ex.Message}", "ERROR");
+            }
         }
 
         private void ExecutePauseClone()

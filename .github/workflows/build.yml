@@ -54,6 +54,12 @@ jobs:
           En güncel otomatik derlenmiş sürüm (Apex Diagnostics Suite).
           
           Bu sürüm main branch'ine yapılan her push sonrasında otomatik olarak güncellenir.
+          
+          ### 🛡️ ÖNEMLİ GÜVENLİK UYARISI / SECURITY NOTICE:
+          Uygulama doğrudan disk sektörü kopyalama (raw cloning) ve RAM analizi gibi düşük seviyeli sistem işlemleri yaptığı için tarayıcılar (Chrome/Edge) veya Windows Defender SmartScreen **"güvensiz dosya"** uyarısı verebilir. Bu tamamen dijital imza eksikliği ve yetki gereksinimlerinden kaynaklanan bir **yanlış tespittir (false positive)**.
+          
+          * **Tavsiye Edilen İndirme Yöntemi:** Tarayıcı engellerine takılmamak için **`ApexDiagnostics-win-x64.zip`** dosyasını indirin ve zip dosyasından çıkartarak çalıştırın.
+          * **SmartScreen Engeli:** Uygulamayı ilk kez açarken Windows uyarısı alırsanız: **"Ek Bilgi" (More Info) -> "Yine de Çalıştır" (Run Anyway)** adımlarını takip edin.
         draft: false
         prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         files: |

@@ -42,6 +42,8 @@
                                  Command="{Binding NavigateCommand}" CommandParameter="Explorer"/>
                     <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavClone}" 
                                  Command="{Binding NavigateCommand}" CommandParameter="Clone"/>
+                    <RadioButton Style="{StaticResource NavButton}" Content="{DynamicResource NavPatchNotes}" 
+                                 Command="{Binding NavigateCommand}" CommandParameter="PatchNotes"/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="2" Margin="20,0,20,25">
@@ -86,6 +88,9 @@
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type vm:CloneViewModel}">
                         <views:CloneView/>
+                    </DataTemplate>
+                    <DataTemplate DataType="{x:Type vm:PatchNotesViewModel}">
+                        <views:PatchNotesView/>
                     </DataTemplate>
                 </ContentControl.Resources>
             </ContentControl>

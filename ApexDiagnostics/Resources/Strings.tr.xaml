@@ -10,6 +10,7 @@
     <system:String x:Key="NavSystemInfo">SİSTEM BİLGİSİ</system:String>
     <system:String x:Key="NavExplorer">DOSYA YÖNETİCİSİ</system:String>
     <system:String x:Key="NavClone">DİSK KLONLAYICI</system:String>
+    <system:String x:Key="NavPatchNotes">YAMA NOTLARI</system:String>
     <system:String x:Key="LabelLanguageSelector">🌐 LANGUAGE / DİL SEÇİMİ</system:String>
     
     <!-- Dashboard Titles & Stats -->

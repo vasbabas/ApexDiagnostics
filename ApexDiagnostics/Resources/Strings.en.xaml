@@ -10,6 +10,7 @@
     <system:String x:Key="NavSystemInfo">SYSTEM INFO</system:String>
     <system:String x:Key="NavExplorer">FILE EXPLORER</system:String>
     <system:String x:Key="NavClone">DISK CLONER</system:String>
+    <system:String x:Key="NavPatchNotes">PATCH NOTES</system:String>
     <system:String x:Key="LabelLanguageSelector">🌐 LANGUAGE / DİL</system:String>
     
     <!-- Dashboard Titles & Stats -->

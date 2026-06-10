@@ -1,0 +1,90 @@
+<UserControl x:Class="ApexDiagnostics.Views.PatchNotesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:ApexDiagnostics.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="0,0,20,0">
+            <!-- Title -->
+            <TextBlock Text="{DynamicResource NavPatchNotes}" Style="{StaticResource SectionHeader}" FontSize="24" TextWrapping="Wrap" Margin="0,0,0,5"/>
+            <TextBlock Text="Apex Diagnostics Suite - Release &amp; Integrity Notes" Style="{StaticResource MetricLabel}" Margin="0,0,0,20" TextWrapping="Wrap"/>
+
+            <!-- Version Badge Card -->
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20" Padding="20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="v2.0.1 Stable Release" Style="{StaticResource MetricValue}" FontSize="20" Foreground="{StaticResource AccentBlueBrush}"/>
+                        <TextBlock Text="Engine Stability &amp; Safe Execution Update" Style="{StaticResource MetricLabel}" Margin="0,4,0,0"/>
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="#1A58A6FF" BorderBrush="{StaticResource AccentBlueBrush}" BorderThickness="1" CornerRadius="12" Padding="12,6">
+                        <TextBlock Text="{Binding ReleaseDate}" Foreground="{StaticResource AccentBlueBrush}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- Major Updates -->
+            <TextBlock Text="🔧 ENGINE IMPROVEMENTS &amp; FIXES" Style="{StaticResource SectionHeader}" FontSize="16" Foreground="{StaticResource AccentOrangeBrush}" Margin="0,10,0,10"/>
+
+            <UniformGrid Columns="2" HorizontalAlignment="Stretch" Margin="0,0,0,20">
+                <!-- Fix 1: Access Denied -->
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,10,0" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="🔒 Drive Sector Lock (Access Denied Fix)" Style="{StaticResource MetricValue}" FontSize="14" Foreground="{StaticResource AccentGreenBrush}" Margin="0,0,0,8"/>
+                        <TextBlock Text="Resolved the 'Access to the path is denied' exception during raw sector cloning. The cloner now programmatically offlines the target disk using WMI (with a silent Diskpart fallback) to release active filesystem hooks, granting exclusive block-level write access." TextWrapping="Wrap" Style="{StaticResource MetricLabel}" LineHeight="18"/>
+                    </StackPanel>
+                </Border>
+                
+                <!-- Fix 2: Auto-Remount -->
+                <Border Style="{StaticResource CardBorder}" Padding="15">
+                    <StackPanel>
+                        <TextBlock Text="🔄 Automated Drive Safe-Release" Style="{StaticResource MetricValue}" FontSize="14" Foreground="{StaticResource AccentPurpleBrush}" Margin="0,0,0,8"/>
+                        <TextBlock Text="Introduced automated recovery routines in the execution lifecycle. Whether the raw sector clone completes successfully, encounters a bad sector limits threshold, or is canceled by the user, the target drive is automatically brought back online and remounted by Windows safely." TextWrapping="Wrap" Style="{StaticResource MetricLabel}" LineHeight="18"/>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <!-- Security & Download Warning Guidance -->
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,0,20" BorderBrush="{StaticResource AccentYellowBrush}" BorderThickness="1.5" Background="#161B22">
+                <StackPanel>
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="🛡️" FontSize="24" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                        <TextBlock Grid.Column="1" Text="SECURITY &amp; INTEGRITY NOTICE" Style="{StaticResource MetricValue}" FontSize="16" Foreground="{StaticResource AccentYellowBrush}" VerticalAlignment="Center"/>
+                    </Grid>
+                    
+                    <TextBlock Text="Because Apex Diagnostics Suite performs low-level, bare-metal hardware operations (direct RAM toxicity scanning, raw sector write disk cloning, and kernel driver interactions), Windows SmartScreen and browser filters may flag the executable as unsafe or block the download. This is a false positive caused by the unsigned nature of the executable and its administrative power." TextWrapping="Wrap" Style="{StaticResource MetricLabel}" FontSize="12" LineHeight="18" Margin="0,0,0,12"/>
+                    
+                    <TextBlock Text="How to safely download and run Apex Diagnostics:" Style="{StaticResource MetricValue}" FontSize="12" Margin="0,0,0,6"/>
+                    <BulletDecorator Margin="10,0,0,4">
+                        <BulletDecorator.Bullet>
+                            <TextBlock Text="•" Margin="0,0,6,0" Foreground="{StaticResource AccentYellowBrush}"/>
+                        </BulletDecorator.Bullet>
+                        <TextBlock Text="Recommended Download: Always download the compiled .zip package instead of the raw standalone .exe file. Browsers allow zip file transfers without blocking." TextWrapping="Wrap" Style="{StaticResource MetricLabel}"/>
+                    </BulletDecorator>
+                    <BulletDecorator Margin="10,0,0,4">
+                        <BulletDecorator.Bullet>
+                            <TextBlock Text="•" Margin="0,0,6,0" Foreground="{StaticResource AccentYellowBrush}"/>
+                        </BulletDecorator.Bullet>
+                        <TextBlock Text="Chrome/Edge: Click 'Keep' or 'Show details' -> 'Keep anyway' if prompted in the downloads bar." TextWrapping="Wrap" Style="{StaticResource MetricLabel}"/>
+                    </BulletDecorator>
+                    <BulletDecorator Margin="10,0,0,4">
+                        <BulletDecorator.Bullet>
+                            <TextBlock Text="•" Margin="0,0,6,0" Foreground="{StaticResource AccentYellowBrush}"/>
+                        </BulletDecorator.Bullet>
+                        <TextBlock Text="Windows SmartScreen: Click 'More info' -> 'Run anyway' when launching for the first time." TextWrapping="Wrap" Style="{StaticResource MetricLabel}"/>
+                    </BulletDecorator>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

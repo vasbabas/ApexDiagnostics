@@ -26,14 +26,17 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexDiagnostics-win-x64.zip">
+    <img src="https://img.shields.io/badge/İNDİR-Tüm%20Dosyalar%20(Tavsiye%20Edilen%20ZIP)-green?style=for-the-badge&logo=archive&logoColor=white&color=2ea44f" alt="Download ZIP"/>
+  </a>
+</p>
+<p align="center">
+  <sub>Alternatif Standart Sürümler (Tarayıcınız uyarabilir):</sub><br/>
   <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexDiagnostics.exe">
-    <img src="https://img.shields.io/badge/Doğrudan%20İndir-ApexDiagnostics.exe-blue?style=for-the-badge&logo=windows&logoColor=white&color=0078d4" alt="Download ApexDiagnostics.exe"/>
+    <img src="https://img.shields.io/badge/Doğrudan%20İndir-ApexDiagnostics.exe-blue?style=flat&logo=windows&logoColor=white&color=0078d4" alt="Download ApexDiagnostics.exe"/>
   </a>
   <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexShell.exe">
-    <img src="https://img.shields.io/badge/Doğrudan%20İndir-ApexShell.exe-purple?style=for-the-badge&logo=windows&logoColor=white&color=6f42c1" alt="Download ApexShell.exe"/>
-  </a>
-  <a href="https://github.com/vasbabas/ApexDiagnostics/releases/download/latest/ApexDiagnostics-win-x64.zip">
-    <img src="https://img.shields.io/badge/İndir-Tüm%20Dosyalar%20(ZIP)-green?style=for-the-badge&logo=archive&logoColor=white&color=2ea44f" alt="Download ZIP"/>
+    <img src="https://img.shields.io/badge/Doğrudan%20İndir-ApexShell.exe-purple?style=flat&logo=windows&logoColor=white&color=6f42c1" alt="Download ApexShell.exe"/>
   </a>
 </p>
 
@@ -252,6 +255,17 @@ To compile the application and prepare the binaries for Win10XPE:
    - Copy the contents of the generated `Build/` folder (including `ApexDiagnostics.exe`, `ApexShell.exe`, and `Explorer++.exe`) to your Win10XPE custom folder.
    - For auto-start at boot, add your executable (e.g., `ApexShell.exe`) to your Win10XPE `PECmd.ini` file or configure it as the custom Windows shell.
    - **Crucial:** Ensure that **.NET Framework/Core** and **Graphics/Direct3D** support are checked/enabled in your Win10XPE Builder to support WPF graphics.
+
+---
+
+## 🛡️ Güvenlik Uyarısı & Güvenli Kurulum (Security & Safe Execution)
+
+Apex Diagnostics Suite, doğrudan RAM analizi, ham disk sektörü yazma/klonlama ve düşük seviyeli donanım sensör takibi gibi kritik sistem işlemlerini gerçekleştirdiği için Windows Defender SmartScreen ve web tarayıcıları (Chrome/Edge) tarafından **"güvensiz dosya"** olarak algılanabilir. Bu durum, uygulamanın dijital olarak imzalanmamış (unsigned) olması ve sahip olduğu yönetimsel yetkilerden kaynaklanan bir **yanlış tespittir (false positive)**.
+
+### Güvenli İndirme ve Çalıştırma Adımları:
+1. **Tavsiye Edilen Yöntem:** Uygulamayı doğrudan `.exe` yerine `.zip` arşivi olarak indirin. Tarayıcılar `.zip` indirmelerine engel koymamaktadır.
+2. **Tarayıcı Engeli Aşma:** Eğer tarayıcınız yine de uyarı verirse, indirilenler sekmesinden "Dosyayı Koru" (Keep file) -> "Yine de Koru" (Keep anyway) seçeneğini tıklayın.
+3. **SmartScreen Engeli Aşma:** İndirdiğiniz `.zip` dosyasını bir klasöre çıkartın ve `ApexDiagnostics.exe` dosyasına çift tıkladığınızda çıkan Windows SmartScreen uyarısında **"Ek Bilgi" (More Info)** seçeneğine, ardından **"Yine de Çalıştır" (Run Anyway)** butonuna tıklayın.
 
 ---
 
