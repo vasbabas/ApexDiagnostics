@@ -17,6 +17,8 @@ namespace ApexDiagnostics.Core
         private readonly object _lock = new();
         private int _throttleCount = 0;
         private const int ThrottleHysteresis = 3; // require 3 cycles to toggle
+        private readonly Dictionary<string, List<double>> _wmiTempHistories = new();
+        private readonly HashSet<string> _staticZonesLogged = new();
 
         // ── CPU Thermal ──
         public double CpuPackageTemp   { get; private set; }
@@ -278,13 +280,41 @@ namespace ApexDiagnostics.Core
                     // MSAcpi Thermal Zone temperature fallback
                     try
                     {
-                        using var s2 = new ManagementObjectSearcher(@"root\WMI", "SELECT CurrentTemperature FROM MSAcpi_ThermalZoneTemperature");
+                        using var s2 = new ManagementObjectSearcher(@"root\WMI", "SELECT InstanceName, CurrentTemperature FROM MSAcpi_ThermalZoneTemperature");
                         double maxTemp = 0;
                         foreach (var item in s2.Get())
                         {
+                            string name = item["InstanceName"]?.ToString() ?? "UnknownZone";
                             double kelvinDeci = Convert.ToDouble(item["CurrentTemperature"]);
                             double celsius = (kelvinDeci / 10.0) - 273.15;
-                            if (celsius > maxTemp) maxTemp = celsius;
+
+                            // Track history to detect static zones
+                            if (!_wmiTempHistories.TryGetValue(name, out var history))
+                            {
+                                history = new List<double>();
+                                _wmiTempHistories[name] = history;
+                            }
+                            history.Add(celsius);
+                            if (history.Count > 10) history.RemoveAt(0);
+
+                            bool isStaticHigh = false;
+                            if (history.Count >= 5)
+                            {
+                                double minVal = history.Min();
+                                double maxVal = history.Max();
+                                if (celsius >= 80.0 && Math.Abs(maxVal - minVal) < 0.01)
+                                {
+                                    isStaticHigh = true;
+                                    if (!_staticZonesLogged.Contains(name))
+                                    {
+                                        _staticZonesLogged.Add(name);
+                                        Logger.Log($"Ignoring static high WMI thermal zone '{name}' reporting {celsius:F1}°C with zero fluctuation.", "WARN");
+                                    }
+                                }
+                            }
+
+                            if (!isStaticHigh && celsius > maxTemp)
+                                maxTemp = celsius;
                         }
                         if (maxTemp > 0) CpuPackageTemp = Math.Round(maxTemp, 1);
                     }
