@@ -3,8 +3,6 @@ name: Build and Release
 on:
   push:
     branches: [ "main" ]
-    tags:
-      - 'v*'
   pull_request:
     branches: [ "main" ]
 
@@ -18,6 +16,8 @@ jobs:
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
@@ -44,16 +44,38 @@ jobs:
         name: ApexDiagnostics-win-x64
         path: Build/ApexDiagnostics-win-x64.zip
 
+    - name: Generate and Push Version Tag
+      id: tag_version
+      if: github.ref == 'refs/heads/main'
+      run: |
+        git fetch --tags
+        $latestTag = git tag -l "v*" | Sort-Object {[version]($_ -replace 'v', '')} | Select-Object -Last 1
+        if ($null -eq $latestTag -or $latestTag -eq "") {
+            $newTag = "v2.0.1"
+        } else {
+            $versionStr = $latestTag -replace 'v', ''
+            $version = [version]$versionStr
+            $newVersion = New-Object System.Version($version.Major, $version.Minor, ($version.Build + 1))
+            $newTag = "v" + $newVersion.ToString()
+        }
+        Write-Output "New tag determined: $newTag"
+        echo "NEW_TAG=$newTag" >> $env:GITHUB_OUTPUT
+        
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag $newTag
+        git push origin $newTag
+
     - name: Create or Update GitHub Release
-      if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+      if: github.ref == 'refs/heads/main'
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
-        name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'Latest Pre-compiled Binaries' }}
+        tag_name: ${{ steps.tag_version.outputs.NEW_TAG }}
+        name: Release ${{ steps.tag_version.outputs.NEW_TAG }}
         body: |
-          En güncel otomatik derlenmiş sürüm (Apex Diagnostics Suite).
+          En güncel otomatik derlenmiş sürüm (Apex Diagnostics Suite - ${{ steps.tag_version.outputs.NEW_TAG }}).
           
-          Bu sürüm main branch'ine yapılan her push sonrasında otomatik olarak güncellenir.
+          Bu sürüm main branch'ine yapılan her push sonrasında otomatik olarak yeni bir versiyon etiketiyle yayınlanır.
           
           ### 🛡️ ÖNEMLİ GÜVENLİK UYARISI / SECURITY NOTICE:
           Uygulama doğrudan disk sektörü kopyalama (raw cloning) ve RAM analizi gibi düşük seviyeli sistem işlemleri yaptığı için tarayıcılar (Chrome/Edge) veya Windows Defender SmartScreen **"güvensiz dosya"** uyarısı verebilir. Bu tamamen dijital imza eksikliği ve yetki gereksinimlerinden kaynaklanan bir **yanlış tespittir (false positive)**.
@@ -61,7 +83,7 @@ jobs:
           * **Tavsiye Edilen İndirme Yöntemi:** Tarayıcı engellerine takılmamak için **`ApexDiagnostics-win-x64.zip`** dosyasını indirin ve zip dosyasından çıkartarak çalıştırın.
           * **SmartScreen Engeli:** Uygulamayı ilk kez açarken Windows uyarısı alırsanız: **"Ek Bilgi" (More Info) -> "Yine de Çalıştır" (Run Anyway)** adımlarını takip edin.
         draft: false
-        prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        prerelease: false
         files: |
           Build/ApexDiagnostics-win-x64.zip
           Build/Publish/*.exe
