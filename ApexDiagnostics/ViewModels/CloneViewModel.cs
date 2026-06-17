@@ -343,6 +343,7 @@ namespace ApexDiagnostics.ViewModels
                 SafeFileHandle? hSource = null;
                 SafeFileHandle? hDest = null;
                 var lockedVolumeHandles = new System.Collections.Generic.List<SafeFileHandle>();
+                bool cloneSuccessful = false;
                 
                 try
                 {
@@ -605,6 +606,7 @@ namespace ApexDiagnostics.ViewModels
 
                     fsDest.Flush();
                     stopwatch.Stop();
+                    cloneSuccessful = !IsCloneCancelled;
 
                     App.Current.Dispatcher.Invoke(() =>
                     {
@@ -623,12 +625,20 @@ namespace ApexDiagnostics.ViewModels
                             string warningPattern = GetTranslation("CloneStatusCompletedWithWarnings", "Drive cloning completed with warnings. {0} bad sectors were skipped and zero-filled.");
                             Status = string.Format(warningPattern, SkippedBadSectors);
                             CloneWarningMessage = string.Format(warningPattern, SkippedBadSectors);
-                            MessageBox.Show($"Physical Drive #{srcDisk.Index} has been cloned to Drive #{dstDisk.Index}!\nTotal Time: {TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds):hh\\:mm\\:ss}\n\nWARNING: {SkippedBadSectors} bad sectors were skipped and zero-filled. Check your source disk health.", "Cloning Complete with Warnings", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                            string title = GetTranslation("CloneBootingNoteWarningTitle", "Cloning Complete with Warnings");
+                            string textPattern = GetTranslation("CloneBootingNoteWarningText", "Physical Drive #{0} has been cloned to Drive #{1}!\nTotal Time: {2}\n\nWARNING: {3} bad sectors were skipped and zero-filled. Check your source disk health.\n\nBOOTING NOTE: To boot from the cloned drive, the target drive has been left OFFLINE to prevent Windows from altering its disk signature (which breaks bootability).\n\nInstructions to boot:\n1. Shut down your PC.\n2. Disconnect the source drive (or change boot priority in BIOS).\n3. Turn on your PC. The new drive will boot and automatically come online.\n\nIf you just want to use it as data storage, you can manually online it via Windows Disk Management.");
+                            string formattedText = string.Format(textPattern, srcDisk.Index, dstDisk.Index, TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds).ToString(@"hh\:mm\:ss"), SkippedBadSectors);
+                            MessageBox.Show(formattedText, title, MessageBoxButton.OK, MessageBoxImage.Warning);
                         }
                         else
                         {
                             Status = GetTranslation("CloneStatusCompleted", "Drive cloning completed successfully!");
-                            MessageBox.Show($"Physical Drive #{srcDisk.Index} has been successfully cloned to Drive #{dstDisk.Index}!\nTotal Time: {TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds):hh\\:mm\\:ss}", "Cloning Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            string title = GetTranslation("CloneBootingNoteTitle", "Cloning Complete");
+                            string textPattern = GetTranslation("CloneBootingNoteText", "Physical Drive #{0} has been successfully cloned to Drive #{1}!\nTotal Time: {2}\n\nBOOTING NOTE: To boot from the cloned drive, the target drive has been left OFFLINE to prevent Windows from altering its disk signature (which breaks bootability).\n\nInstructions to boot:\n1. Shut down your PC.\n2. Disconnect the source drive (or change boot priority in BIOS).\n3. Turn on your PC. The new drive will boot and automatically come online.\n\nIf you just want to use it as data storage, you can manually online it via Windows Disk Management.");
+                            string formattedText = string.Format(textPattern, srcDisk.Index, dstDisk.Index, TimeSpan.FromMilliseconds(stopwatch.ElapsedMilliseconds).ToString(@"hh\:mm\:ss"));
+                            MessageBox.Show(formattedText, title, MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     });
                 }
@@ -651,8 +661,15 @@ namespace ApexDiagnostics.ViewModels
                     {
                         hVol.Dispose();
                     }
-                    // Bring destination disk back online
-                    SetDiskOfflineState(dstDisk.Index, false);
+                    // Bring destination disk back online only if the clone was not successful
+                    if (!cloneSuccessful)
+                    {
+                        SetDiskOfflineState(dstDisk.Index, false);
+                    }
+                    else
+                    {
+                        Logger.Log($"Cloning completed successfully. Leaving destination disk {dstDisk.Index} offline to prevent OS signature collision alterations.", "INFO");
+                    }
                 }
             });
         }
