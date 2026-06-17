@@ -608,6 +608,11 @@ namespace ApexDiagnostics.ViewModels
                     stopwatch.Stop();
                     cloneSuccessful = !IsCloneCancelled;
 
+                    if (cloneSuccessful)
+                    {
+                        RepairClonedBootloader(srcDisk.Index, dstDisk.Index);
+                    }
+
                     App.Current.Dispatcher.Invoke(() =>
                     {
                         IsCloning = false;
@@ -924,6 +929,181 @@ namespace ApexDiagnostics.ViewModels
             if (res == MessageBoxResult.Yes)
             {
                 IsCloneCancelled = true;
+            }
+        }
+
+        private void RepairClonedBootloader(int srcDiskIndex, int dstDiskIndex)
+        {
+            try
+            {
+                Logger.Log($"Starting bootloader repair on target disk {dstDiskIndex}...", "INFO");
+
+                // 1. Ensure target disk is online so we can access its volumes
+                SetDiskOfflineState(dstDiskIndex, false);
+                System.Threading.Thread.Sleep(3000); // wait for mount
+
+                // 2. Find the Windows partition on the target disk
+                string? windowsDrive = null;
+                int efiPartIndex = -1;
+                int activePartIndex = -1;
+
+                // Map logical disks to partitions for target disk
+                var logicalMap = new System.Collections.Generic.Dictionary<string, string>();
+                using (var mapSearcher = new ManagementObjectSearcher("SELECT Antecedent, Dependent FROM Win32_LogicalDiskToPartition"))
+                {
+                    foreach (var mapping in mapSearcher.Get())
+                    {
+                        string antecedent = mapping["Antecedent"]?.ToString() ?? "";
+                        string dependent = mapping["Dependent"]?.ToString() ?? "";
+                        string partId = ExtractDeviceId(antecedent);
+                        string driveLetter = ExtractDeviceId(dependent);
+                        if (!string.IsNullOrEmpty(partId) && !string.IsNullOrEmpty(driveLetter))
+                        {
+                            logicalMap[partId] = driveLetter;
+                        }
+                    }
+                }
+
+                using (var partSearcher = new ManagementObjectSearcher("SELECT DeviceID, Index, Type, BootPartition FROM Win32_DiskPartition"))
+                {
+                    foreach (var partition in partSearcher.Get())
+                    {
+                        string deviceId = partition["DeviceID"]?.ToString() ?? "";
+                        if (deviceId.StartsWith($"Disk #{dstDiskIndex},", StringComparison.OrdinalIgnoreCase))
+                        {
+                            int index = Convert.ToInt32(partition["Index"] ?? 0);
+                            string type = partition["Type"]?.ToString() ?? "";
+                            bool isBoot = Convert.ToBoolean(partition["BootPartition"] ?? false);
+
+                            // Check if this is the EFI System Partition (GPT)
+                            if (type.Contains("System", StringComparison.OrdinalIgnoreCase) || type.Contains("EFI", StringComparison.OrdinalIgnoreCase))
+                            {
+                                efiPartIndex = index;
+                            }
+
+                            // Check if this is the active partition (MBR)
+                            if (isBoot)
+                            {
+                                activePartIndex = index;
+                            }
+
+                            if (logicalMap.TryGetValue(deviceId, out var driveLetter))
+                            {
+                                string cleanLetter = driveLetter.Replace("\\", "").Replace(":", "").Trim();
+                                if (Directory.Exists($"{cleanLetter}:\\Windows\\System32"))
+                                {
+                                    windowsDrive = cleanLetter;
+                                    Logger.Log($"Found Windows OS partition on target drive: {windowsDrive}:", "INFO");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(windowsDrive))
+                {
+                    Logger.Log("Could not locate Windows partition on target disk. Skipping bootloader repair.", "WARN");
+                    return;
+                }
+
+                // 3. Repair bootloader based on firmware type (GPT/UEFI or MBR/BIOS)
+                if (efiPartIndex != -1)
+                {
+                    Logger.Log($"Found EFI partition at index {efiPartIndex} on target disk. Rebuilding UEFI BCD...", "INFO");
+                    // Assign temporary letter S to EFI partition
+                    RunDiskpartCommand($"select disk {dstDiskIndex}\nselect partition {efiPartIndex}\nassign letter=S\nexit");
+                    System.Threading.Thread.Sleep(1000);
+
+                    // Run bcdboot
+                    RunProcess("bcdboot.exe", $"{windowsDrive}:\\Windows /s S: /f UEFI");
+
+                    // Remove letter S
+                    RunDiskpartCommand($"select disk {dstDiskIndex}\nselect partition {efiPartIndex}\nremove letter=S\nexit");
+                }
+                else
+                {
+                    Logger.Log("No EFI partition found. Assuming MBR/Legacy BIOS bootloader repair...", "INFO");
+
+                    // If active partition exists, try to repair it
+                    if (activePartIndex != -1)
+                    {
+                        // Assign temporary letter S to active boot partition
+                        RunDiskpartCommand($"select disk {dstDiskIndex}\nselect partition {activePartIndex}\nassign letter=S\nexit");
+                        System.Threading.Thread.Sleep(1000);
+
+                        RunProcess("bcdboot.exe", $"{windowsDrive}:\\Windows /s S: /f BIOS");
+
+                        RunDiskpartCommand($"select disk {dstDiskIndex}\nselect partition {activePartIndex}\nremove letter=S\nexit");
+                    }
+                    else
+                    {
+                        // Fallback: write bootloader directly to OS drive
+                        RunProcess("bcdboot.exe", $"{windowsDrive}:\\Windows /s {windowsDrive}: /f ALL");
+                    }
+                }
+
+                Logger.Log("Bootloader repair completed successfully.", "INFO");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error during bootloader repair: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void RunDiskpartCommand(string script)
+        {
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "diskpart.exe",
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                using var process = System.Diagnostics.Process.Start(startInfo);
+                if (process != null)
+                {
+                    using (var writer = process.StandardInput)
+                    {
+                        writer.Write(script);
+                    }
+                    process.WaitForExit(10000);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Diskpart script failed: {ex.Message}", "ERROR");
+            }
+        }
+
+        private void RunProcess(string filename, string arguments)
+        {
+            try
+            {
+                var startInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = filename,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+                using var process = System.Diagnostics.Process.Start(startInfo);
+                if (process != null)
+                {
+                    process.WaitForExit(15000);
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+                    Logger.Log($"Process {filename} {arguments} completed. Output: {output.Trim()} Error: {error.Trim()}", "INFO");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Process run failed: {ex.Message}", "ERROR");
             }
         }
 
