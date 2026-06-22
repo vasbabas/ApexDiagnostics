@@ -325,6 +325,38 @@ namespace ApexDiagnostics.ViewModels
         private void ExecuteStartClone()
         {
             IsWarningVisible = false;
+            var srcDisk = SelectedSource!;
+            var dstDisk = SelectedDest!;
+
+            // Check if BitLocker is active on the source drive
+            bool hasBitLocker = IsBitLockerEnabled(srcDisk.Index);
+            bool shouldDecrypt = false;
+
+            if (hasBitLocker)
+            {
+                var result = MessageBox.Show(
+                    GetTranslation("CloneBitLockerPromptText", "WARNING: BitLocker Encryption Detected!\n\nThe source disk has active BitLocker drive encryption. A raw sector clone of an encrypted disk will copy encrypted data, but the cloned drive will fail to boot (0xc000000e) because TPM validation will fail.\n\nWould you like the program to automatically disable and decrypt BitLocker on the source drive? (Cloning will start automatically once decryption is 100% complete. This may take some time.)"),
+                    GetTranslation("CloneBitLockerPromptTitle", "BitLocker Encryption Active"),
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning
+                );
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    shouldDecrypt = true;
+                }
+                else
+                {
+                    MessageBox.Show(
+                        GetTranslation("CloneBitLockerAbortedText", "Cloning process aborted. Please manually disable and decrypt BitLocker on the source drive before cloning."),
+                        GetTranslation("CloneBitLockerAbortedTitle", "Cloning Aborted"),
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                    return;
+                }
+            }
+
             IsCloning = true;
             IsClonePaused = false;
             IsCloneCancelled = false;
@@ -335,18 +367,92 @@ namespace ApexDiagnostics.ViewModels
             TimeRemaining = GetTranslation("CloneStatusCalculating", "Calculating...");
             Status = GetTranslation("CloneStatusInitializing", "Initializing low-level sector cloning session...");
 
-            var srcDisk = SelectedSource!;
-            var dstDisk = SelectedDest!;
-
             System.Threading.Tasks.Task.Run(() =>
             {
                 SafeFileHandle? hSource = null;
                 SafeFileHandle? hDest = null;
                 var lockedVolumeHandles = new System.Collections.Generic.List<SafeFileHandle>();
                 bool cloneSuccessful = false;
-                
+
                 try
                 {
+                    // Decryption loop if needed
+                    if (shouldDecrypt)
+                    {
+                        var letters = GetVolumeLettersForDisk(srcDisk.Index);
+                        var encryptedLetters = new System.Collections.Generic.List<string>();
+
+                        // Find which letters have BitLocker enabled
+                        string scopePath = @"\\localhost\ROOT\CIMV2\Security\MicrosoftVolumeEncryption";
+                        foreach (var letter in letters)
+                        {
+                            try
+                            {
+                                string query = $"SELECT ProtectionStatus FROM Win32_EncryptableVolume WHERE DriveLetter = '{letter}:'";
+                                using var searcher = new ManagementObjectSearcher(scopePath, query);
+                                foreach (ManagementObject volume in searcher.Get())
+                                {
+                                    uint status = Convert.ToUInt32(volume["ProtectionStatus"] ?? 0);
+                                    if (status != 0) encryptedLetters.Add(letter);
+                                }
+                            }
+                            catch { }
+                        }
+
+                        // Trigger decryption on all encrypted volumes
+                        foreach (var letter in encryptedLetters)
+                        {
+                            DecryptVolume(letter);
+                        }
+
+                        // Monitor decryption progress
+                        bool allDecrypted = false;
+                        while (!allDecrypted && !IsCloneCancelled)
+                        {
+                            allDecrypted = true;
+                            double totalPercent = 0;
+
+                            foreach (var letter in encryptedLetters)
+                            {
+                                var (status, percent) = GetBitLockerStatus(letter);
+                                // ConversionStatus: 0 = Fully Decrypted
+                                if (status != 0)
+                                {
+                                    allDecrypted = false;
+                                }
+                                totalPercent += percent;
+                            }
+
+                            double avgPercent = encryptedLetters.Count > 0 ? (totalPercent / encryptedLetters.Count) : 100;
+                            App.Current.Dispatcher.Invoke(() =>
+                            {
+                                Progress = avgPercent;
+                                string decryptingLabel = GetTranslation("LabelDecrypting", "Decrypting source drive BitLocker");
+                                Status = $"{decryptingLabel}: {avgPercent:F1}%...";
+                            });
+
+                            if (!allDecrypted)
+                            {
+                                System.Threading.Thread.Sleep(2000);
+                            }
+                        }
+
+                        if (IsCloneCancelled)
+                        {
+                            App.Current.Dispatcher.Invoke(() =>
+                            {
+                                IsCloning = false;
+                                Status = "Cloning session aborted by user during decryption.";
+                            });
+                            return;
+                        }
+
+                        App.Current.Dispatcher.Invoke(() =>
+                        {
+                            Progress = 0;
+                            Status = GetTranslation("CloneStatusInitializing", "Initializing low-level sector cloning session...");
+                        });
+                    }
                     // Dismount and lock all volumes on destination drive first to prevent ACCESS DENIED
                     var destLetters = GetVolumeLettersForDisk(dstDisk.Index);
                     foreach (var letter in destLetters)
@@ -1105,6 +1211,76 @@ namespace ApexDiagnostics.ViewModels
             {
                 Logger.Log($"Process run failed: {ex.Message}", "ERROR");
             }
+        }
+
+        private bool IsBitLockerEnabled(int diskIndex)
+        {
+            try
+            {
+                var letters = GetVolumeLettersForDisk(diskIndex);
+                if (letters.Count == 0) return false;
+
+                string scopePath = @"\\localhost\ROOT\CIMV2\Security\MicrosoftVolumeEncryption";
+                foreach (var letter in letters)
+                {
+                    string query = $"SELECT ProtectionStatus FROM Win32_EncryptableVolume WHERE DriveLetter = '{letter}:'";
+                    using var searcher = new ManagementObjectSearcher(scopePath, query);
+                    foreach (ManagementObject volume in searcher.Get())
+                    {
+                        uint status = Convert.ToUInt32(volume["ProtectionStatus"] ?? 0);
+                        if (status != 0) 
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error checking BitLocker status for disk {diskIndex}: {ex.Message}", "WARN");
+            }
+            return false;
+        }
+
+        private void DecryptVolume(string driveLetter)
+        {
+            try
+            {
+                string scopePath = @"\\localhost\ROOT\CIMV2\Security\MicrosoftVolumeEncryption";
+                string query = $"SELECT * FROM Win32_EncryptableVolume WHERE DriveLetter = '{driveLetter}:'";
+                using var searcher = new ManagementObjectSearcher(scopePath, query);
+                foreach (ManagementObject volume in searcher.Get())
+                {
+                    volume.InvokeMethod("Decrypt", null);
+                    Logger.Log($"Triggered BitLocker decryption for volume {driveLetter}: via WMI.", "INFO");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to trigger BitLocker decryption for volume {driveLetter}: {ex.Message}. Trying manage-bde fallback...", "WARN");
+                RunProcess("manage-bde.exe", $"-off {driveLetter}:");
+            }
+        }
+
+        private (uint status, uint percent) GetBitLockerStatus(string driveLetter)
+        {
+            try
+            {
+                string scopePath = @"\\localhost\ROOT\CIMV2\Security\MicrosoftVolumeEncryption";
+                string query = $"SELECT ConversionStatus, PercentComplete FROM Win32_EncryptableVolume WHERE DriveLetter = '{driveLetter}:'";
+                using var searcher = new ManagementObjectSearcher(scopePath, query);
+                foreach (ManagementObject volume in searcher.Get())
+                {
+                    uint status = Convert.ToUInt32(volume["ConversionStatus"] ?? 0);
+                    uint percent = Convert.ToUInt32(volume["PercentComplete"] ?? 0);
+                    return (status, percent);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Failed to get BitLocker status for volume {driveLetter}: {ex.Message}", "WARN");
+            }
+            return (0, 100);
         }
 
         // Native imports for raw physical disk access
