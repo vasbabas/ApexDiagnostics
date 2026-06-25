@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
@@ -1044,11 +1044,19 @@ namespace ApexDiagnostics.ViewModels
             {
                 Logger.Log($"Starting bootloader repair on target disk {dstDiskIndex}...", "INFO");
 
-                // 1. Ensure target disk is online so we can access its volumes
+                // 1. Ensure target disk is online so volumes are accessible
                 SetDiskOfflineState(dstDiskIndex, false);
-                System.Threading.Thread.Sleep(3000); // wait for mount
+                System.Threading.Thread.Sleep(3000);
 
-                // 2. Find the Windows partition on the target disk
+                // 2. Change disk signature to prevent BSOD from disk signature collision.
+                //    Sector-by-sector clone copies the source disk's MBR/GPT signature verbatim.
+                //    When both disks are attached Windows sees duplicate signatures and throws
+                //    INACCESSIBLE_BOOT_DEVICE (0x0000007B). A new unique ID fixes this.
+                Logger.Log($"Assigning new unique disk signature to target disk {dstDiskIndex} to prevent collision...", "INFO");
+                RunDiskpartCommand($"select disk {dstDiskIndex}\nuniqueId disk generate\nexit");
+                System.Threading.Thread.Sleep(2000);
+
+                // 3. Find the Windows partition on the target disk
                 string? windowsDrive = null;
                 int efiPartIndex = -1;
                 int activePartIndex = -1;
@@ -1109,10 +1117,11 @@ namespace ApexDiagnostics.ViewModels
                 if (string.IsNullOrEmpty(windowsDrive))
                 {
                     Logger.Log("Could not locate Windows partition on target disk. Skipping bootloader repair.", "WARN");
+                    SetDiskOfflineState(dstDiskIndex, true);
                     return;
                 }
 
-                // 3. Repair bootloader based on firmware type (GPT/UEFI or MBR/BIOS)
+                // 4. Repair bootloader based on firmware type (GPT/UEFI or MBR/BIOS)
                 if (efiPartIndex != -1)
                 {
                     Logger.Log($"Found EFI partition at index {efiPartIndex} on target disk. Rebuilding UEFI BCD...", "INFO");
@@ -1147,6 +1156,13 @@ namespace ApexDiagnostics.ViewModels
                         RunProcess("bcdboot.exe", $"{windowsDrive}:\\Windows /s {windowsDrive}: /f ALL");
                     }
                 }
+
+                // 5. Set disk offline again â€” the disk now has a unique signature so no
+                //    BSOD will occur when booting, but keeping it offline prevents Windows
+                //    from auto-assigning conflicting drive letters on the current session.
+                System.Threading.Thread.Sleep(1000);
+                SetDiskOfflineState(dstDiskIndex, true);
+                Logger.Log($"Target disk {dstDiskIndex} set offline after successful bootloader repair.", "INFO");
 
                 Logger.Log("Bootloader repair completed successfully.", "INFO");
             }
